@@ -47,6 +47,74 @@
       "types": "./dist/plugins/proxyRedirects.d.ts",
       "import": "./dist/plugins/proxyRedirects.js"
     },
+    "./env-validator": {
+      "types": "./dist/plugins/envValidator.d.ts",
+      "import": "./dist/plugins/envValidator.js"
+    },
+    "./compression": {
+      "types": "./dist/plugins/compression.d.ts",
+      "import": "./dist/plugins/compression.js"
+    },
+    "./html-meta": {
+      "types": "./dist/plugins/htmlMeta.d.ts",
+      "import": "./dist/plugins/htmlMeta.js"
+    },
+    "./api-mock": {
+      "types": "./dist/plugins/apiMock.d.ts",
+      "import": "./dist/plugins/apiMock.js"
+    },
+    "./bundle-budget": {
+      "types": "./dist/plugins/bundleBudget.d.ts",
+      "import": "./dist/plugins/bundleBudget.js"
+    },
+    "./auto-alias": {
+      "types": "./dist/plugins/autoAlias.d.ts",
+      "import": "./dist/plugins/autoAlias.js"
+    },
+    "./dead-code-scanner": {
+      "types": "./dist/plugins/deadCodeScanner.d.ts",
+      "import": "./dist/plugins/deadCodeScanner.js"
+    },
+    "./font-localizer": {
+      "types": "./dist/plugins/fontLocalizer.d.ts",
+      "import": "./dist/plugins/fontLocalizer.js"
+    },
+    "./dev-fallback": {
+      "types": "./dist/plugins/devFallback.d.ts",
+      "import": "./dist/plugins/devFallback.js"
+    },
+    "./license-notice": {
+      "types": "./dist/plugins/licenseNotice.d.ts",
+      "import": "./dist/plugins/licenseNotice.js"
+    },
+    "./security-headers": {
+      "types": "./dist/plugins/securityHeaders.d.ts",
+      "import": "./dist/plugins/securityHeaders.js"
+    },
+    "./banner-notice": {
+      "types": "./dist/plugins/bannerNotice.d.ts",
+      "import": "./dist/plugins/bannerNotice.js"
+    },
+    "./svg-sprite": {
+      "types": "./dist/plugins/svgSprite.d.ts",
+      "import": "./dist/plugins/svgSprite.js"
+    },
+    "./resource-hints": {
+      "types": "./dist/plugins/resourceHints.d.ts",
+      "import": "./dist/plugins/resourceHints.js"
+    },
+    "./cache-cleaner": {
+      "types": "./dist/plugins/cacheCleaner.d.ts",
+      "import": "./dist/plugins/cacheCleaner.js"
+    },
+    "./build-performance": {
+      "types": "./dist/plugins/buildPerformance.d.ts",
+      "import": "./dist/plugins/buildPerformance.js"
+    },
+    "./build-scorer": {
+      "types": "./dist/plugins/buildScorer.d.ts",
+      "import": "./dist/plugins/buildScorer.js"
+    },
     "./logger": {
       "types": "./dist/utils/logger.d.ts",
       "import": "./dist/utils/logger.js"
@@ -81,6 +149,19 @@
     "env-loader",
     "env-vars",
     "environment-variables",
+    "env-validator",
+    "env-schema",
+    "compression",
+    "gzip",
+    "brotli",
+    "seo",
+    "html-meta",
+    "open-graph",
+    "twitter-cards",
+    "favicon",
+    "api-mock",
+    "mock-server",
+    "mock-api",
     "code-split",
     "code-splitting",
     "cdn",
@@ -104,7 +185,23 @@
     "terminal-colors",
     "utility",
     "react",
-    "typescript"
+    "typescript",
+    "security-headers",
+    "csp",
+    "banner-notice",
+    "svg-sprite",
+    "svg-icons",
+    "resource-hints",
+    "modulepreload",
+    "cache-cleaner",
+    "cache-purge",
+    "build-performance",
+    "build-metrics",
+    "build-scorer",
+    "build-score",
+    "build-audit",
+    "build-health",
+    "quality-score"
   ],
   "author": "",
   "license": "MIT",

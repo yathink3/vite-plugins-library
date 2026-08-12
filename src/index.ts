@@ -1,5 +1,5 @@
 export { default as codeSplitPlugin } from './plugins/codeSplit';
-export type { CodeSplitPluginOptions } from './plugins/codeSplit';
+export type { CodeSplitPluginOptions, CodeSplitGroup } from './plugins/codeSplit';
 
 export { default as envLoaderPlugin } from './plugins/envLoader';
 export type { EnvLoaderOptions } from './plugins/envLoader';
@@ -25,5 +25,58 @@ export type { CustomConfigOptions } from './plugins/customConfig';
 export { default as proxyRedirectsPlugin } from './plugins/proxyRedirects';
 export type { ProxyRedirectsOptions, DeployPlatform } from './plugins/proxyRedirects';
 
+export { default as envValidatorPlugin } from './plugins/envValidator';
+export type { EnvValidatorOptions, EnvValidationRule } from './plugins/envValidator';
+
+export { default as compressionPlugin } from './plugins/compression';
+export type { CompressionPluginOptions } from './plugins/compression';
+
+export { default as htmlMetaPlugin } from './plugins/htmlMeta';
+export type { HtmlMetaOptions, OpenGraphMetaOptions, TwitterCardMetaOptions } from './plugins/htmlMeta';
+
+export { default as apiMockPlugin } from './plugins/apiMock';
+export type { ApiMockPluginOptions, MockEndpoint } from './plugins/apiMock';
+
+export { default as bundleBudgetPlugin } from './plugins/bundleBudget';
+export type { BundleBudgetOptions } from './plugins/bundleBudget';
+
+export { default as autoAliasPlugin } from './plugins/autoAlias';
+export type { AutoAliasOptions } from './plugins/autoAlias';
+
+export { default as deadCodeScannerPlugin } from './plugins/deadCodeScanner';
+export type { DeadCodeScannerOptions } from './plugins/deadCodeScanner';
+
+export { default as fontLocalizerPlugin } from './plugins/fontLocalizer';
+export type { FontLocalizerOptions } from './plugins/fontLocalizer';
+
+export { default as devFallbackPlugin } from './plugins/devFallback';
+export type { DevFallbackOptions, DevFallbackRule } from './plugins/devFallback';
+
+export { default as licenseNoticePlugin } from './plugins/licenseNotice';
+export type { LicenseNoticeOptions } from './plugins/licenseNotice';
+
+export { default as securityHeadersPlugin } from './plugins/securityHeaders';
+export type { SecurityHeadersOptions } from './plugins/securityHeaders';
+
+export { default as bannerNoticePlugin } from './plugins/bannerNotice';
+export type { BannerNoticeOptions } from './plugins/bannerNotice';
+
+export { default as svgSpritePlugin } from './plugins/svgSprite';
+export type { SvgSpriteOptions } from './plugins/svgSprite';
+
+export { default as resourceHintsPlugin } from './plugins/resourceHints';
+export type { ResourceHintsOptions } from './plugins/resourceHints';
+
+export { default as cacheCleanerPlugin } from './plugins/cacheCleaner';
+export type { CacheCleanerOptions } from './plugins/cacheCleaner';
+
+export { default as buildPerformancePlugin } from './plugins/buildPerformance';
+export type { BuildPerformanceOptions } from './plugins/buildPerformance';
+
+export { default as buildScorerPlugin } from './plugins/buildScorer';
+export type { BuildScorerOptions, BuildScoreReport, ScoreCategory } from './plugins/buildScorer';
+
 export { default as logger, colors, logBox, logStep } from './utils/logger';
 export type { LogType } from './utils/logger';
+
+

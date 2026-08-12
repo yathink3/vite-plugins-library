@@ -1,4 +1,5 @@
-import { loadEnv, type Plugin } from 'vite';
+import type { Plugin } from 'vite';
+import envValidatorPlugin from './envValidator';
 
 /**
  * Options for the envLoaderPlugin.
@@ -18,6 +19,7 @@ export interface EnvLoaderOptions {
 /**
  * Vite plugin to load environment variables from `.env` files matching specific prefixes and expose them on `process.env.*`.
  *
+ * @deprecated Prefer using `envValidatorPlugin` (`vite-plugins-library/env-validator`) with `injectToProcessEnv: true` for unified env loading & schema validation.
  * @param prefixesOrOptions - Array of variable prefixes or an `EnvLoaderOptions` configuration object.
  * @returns A Vite Plugin object.
  */
@@ -32,15 +34,14 @@ export default function envLoaderPlugin(prefixesOrOptions: string[] | EnvLoaderO
     envDir = prefixesOrOptions.envDir;
   }
 
+  const validator = envValidatorPlugin({
+    prefixes,
+    envDir,
+    injectToProcessEnv: true,
+  });
+
   return {
+    ...validator,
     name: 'vite-plugin-env-loader',
-    config(config, { mode }) {
-      const targetDir = envDir || config.envDir || process.cwd();
-      const env = loadEnv(mode, targetDir, prefixes);
-      const define = (config.define = config.define || {});
-      for (const [key, value] of Object.entries(env)) {
-        define[`process.env.${key}`] = JSON.stringify(value);
-      }
-    },
   };
 }

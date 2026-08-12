@@ -1,5 +1,5 @@
-import path from 'path';
 import type { Plugin } from 'vite';
+import autoAliasPlugin from './autoAlias';
 
 /**
  * Options for the customConfigPlugin.
@@ -34,8 +34,9 @@ const DEFAULT_DEDUPE = [
 ];
 
 /**
- * Vite plugin to configure custom path aliases (e.g. `{ '@': '/src' }` or `@` -> `src`) and deduplicate React core dependencies.
+ * Vite plugin to configure custom path aliases (e.g. `{ '@': '/src' }`) and deduplicate React core dependencies.
  *
+ * @deprecated Prefer using `autoAliasPlugin` (`vite-plugins-library/auto-alias`) for automated tsconfig and folder aliasing.
  * @param options - Configuration options for path aliases and package deduplication.
  * @returns A Vite Plugin object.
  */
@@ -46,46 +47,18 @@ export default function customConfigPlugin(options: CustomConfigOptions = {}): P
   const extraDedupe = options.dedupePackages || [];
   const dedupe = Array.from(new Set([...DEFAULT_DEDUPE, ...extraDedupe]));
 
+  const customAliases = options.alias || { [symbol]: targetDirName };
+
+  const autoAlias = autoAliasPlugin({
+    prefix: symbol,
+    srcDir: targetDirName,
+    customAliases,
+    dedupePackages: dedupe,
+    autoMapSrcFolders: false,
+  });
+
   return {
+    ...autoAlias,
     name: 'vite-plugin-custom-config',
-    config(config) {
-      const root = config.root || process.cwd();
-      config.resolve = config.resolve || {};
-      config.resolve.dedupe = [
-        ...(config.resolve.dedupe || []),
-        ...dedupe,
-      ];
-
-      // Build aliases map
-      const aliasesToSet: Record<string, string> = {};
-      if (options.alias && typeof options.alias === 'object') {
-        for (const [findKey, targetPath] of Object.entries(options.alias)) {
-          const cleanTarget = targetPath.startsWith('/') ? targetPath.slice(1) : targetPath;
-          aliasesToSet[findKey] = path.resolve(root, cleanTarget);
-        }
-      } else {
-        const cleanTarget = targetDirName.startsWith('/') ? targetDirName.slice(1) : targetDirName;
-        aliasesToSet[symbol] = path.resolve(root, cleanTarget);
-      }
-
-      const currentAlias = config.resolve.alias || {};
-      if (Array.isArray(currentAlias)) {
-        for (const [find, replacement] of Object.entries(aliasesToSet)) {
-          currentAlias.push({ find, replacement });
-        }
-      } else {
-        config.resolve.alias = {
-          ...currentAlias,
-          ...aliasesToSet,
-        };
-      }
-
-      const configAny = config as any;
-      configAny.legacy = configAny.legacy || {};
-      configAny.legacy.inconsistentCjsInterop = true;
-
-      config.optimizeDeps = config.optimizeDeps || {};
-      config.optimizeDeps.exclude = [...(config.optimizeDeps.exclude || []), 'jsx-runtime'];
-    },
   };
 }
