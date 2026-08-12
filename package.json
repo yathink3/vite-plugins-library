@@ -2,64 +2,54 @@
   "name": "vite-plugins-library",
   "version": "1.1.0",
   "description": "A curated collection of production-ready custom Vite plugins and logger utilities inspired by enterprise Vite configurations.",
-  "main": "./dist/index.cjs",
+  "type": "module",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.js"
     },
     "./code-split": {
       "types": "./dist/plugins/codeSplit.d.ts",
-      "import": "./dist/plugins/codeSplit.js",
-      "require": "./dist/plugins/codeSplit.cjs"
+      "import": "./dist/plugins/codeSplit.js"
     },
     "./env-loader": {
       "types": "./dist/plugins/envLoader.d.ts",
-      "import": "./dist/plugins/envLoader.js",
-      "require": "./dist/plugins/envLoader.cjs"
+      "import": "./dist/plugins/envLoader.js"
     },
     "./image-to-cdn": {
       "types": "./dist/plugins/imageToCdn.d.ts",
-      "import": "./dist/plugins/imageToCdn.js",
-      "require": "./dist/plugins/imageToCdn.cjs"
+      "import": "./dist/plugins/imageToCdn.js"
     },
     "./js-as-jsx": {
       "types": "./dist/plugins/jsAsJsx.d.ts",
-      "import": "./dist/plugins/jsAsJsx.js",
-      "require": "./dist/plugins/jsAsJsx.cjs"
+      "import": "./dist/plugins/jsAsJsx.js"
     },
     "./postcss-shadow-dom": {
       "types": "./dist/plugins/postcssShadowDom.d.ts",
-      "import": "./dist/plugins/postcssShadowDom.js",
-      "require": "./dist/plugins/postcssShadowDom.cjs"
+      "import": "./dist/plugins/postcssShadowDom.js"
     },
     "./public-css-manage": {
       "types": "./dist/plugins/publicCssManage.d.ts",
-      "import": "./dist/plugins/publicCssManage.js",
-      "require": "./dist/plugins/publicCssManage.cjs"
+      "import": "./dist/plugins/publicCssManage.js"
     },
     "./build-log-modifier": {
       "types": "./dist/plugins/buildLogModifier.d.ts",
-      "import": "./dist/plugins/buildLogModifier.js",
-      "require": "./dist/plugins/buildLogModifier.cjs"
+      "import": "./dist/plugins/buildLogModifier.js"
     },
     "./custom-config": {
       "types": "./dist/plugins/customConfig.d.ts",
-      "import": "./dist/plugins/customConfig.js",
-      "require": "./dist/plugins/customConfig.cjs"
+      "import": "./dist/plugins/customConfig.js"
     },
     "./proxy-redirects": {
       "types": "./dist/plugins/proxyRedirects.d.ts",
-      "import": "./dist/plugins/proxyRedirects.js",
-      "require": "./dist/plugins/proxyRedirects.cjs"
+      "import": "./dist/plugins/proxyRedirects.js"
     },
     "./logger": {
       "types": "./dist/utils/logger.d.ts",
-      "import": "./dist/utils/logger.js",
-      "require": "./dist/utils/logger.cjs"
+      "import": "./dist/utils/logger.js"
     }
   },
   "files": [

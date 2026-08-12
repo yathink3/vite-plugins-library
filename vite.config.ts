@@ -17,11 +17,8 @@ export default defineConfig({
         'plugins/proxyRedirects': resolve(__dirname, 'src/plugins/proxyRedirects.ts'),
         'utils/logger': resolve(__dirname, 'src/utils/logger.ts'),
       },
-      formats: ['es', 'cjs'],
-      fileName: (format, entryName) => {
-        const ext = format === 'es' ? 'js' : 'cjs';
-        return `${entryName}.${ext}`;
-      },
+      formats: ['es'],
+      fileName: (_format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
       external: [
