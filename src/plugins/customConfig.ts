@@ -36,7 +36,6 @@ const DEFAULT_DEDUPE = [
 /**
  * Vite plugin to configure custom path aliases (e.g. `{ '@': '/src' }`) and deduplicate React core dependencies.
  *
- * @deprecated Prefer using `autoAliasPlugin` (`vite-plugins-library/auto-alias`) for automated tsconfig and folder aliasing.
  * @param options - Configuration options for path aliases and package deduplication.
  * @returns A Vite Plugin object.
  */

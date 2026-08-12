@@ -19,7 +19,6 @@ export interface EnvLoaderOptions {
 /**
  * Vite plugin to load environment variables from `.env` files matching specific prefixes and expose them on `process.env.*`.
  *
- * @deprecated Prefer using `envValidatorPlugin` (`vite-plugins-library/env-validator`) with `injectToProcessEnv: true` for unified env loading & schema validation.
  * @param prefixesOrOptions - Array of variable prefixes or an `EnvLoaderOptions` configuration object.
  * @returns A Vite Plugin object.
  */

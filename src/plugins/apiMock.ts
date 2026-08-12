@@ -26,7 +26,6 @@ export interface ApiMockPluginOptions {
 /**
  * Vite plugin that injects development server middleware to intercept local API requests (e.g. `/api/*`) and serve mock JSON responses or custom handlers.
  *
- * @deprecated Prefer using `devFallbackPlugin` (`vite-plugins-library/dev-fallback`) with `mocks` options for unified dev server network intercepting.
  * @param options - Configuration options for mock endpoint definitions, URL prefixes, and simulated latency.
  * @returns A Vite Plugin object.
  */
