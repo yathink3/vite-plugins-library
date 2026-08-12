@@ -1,0 +1,98 @@
+{
+  "name": "vite-plugins-library",
+  "version": "1.1.0",
+  "description": "A curated collection of production-ready custom Vite plugins and logger utilities inspired by enterprise Vite configurations.",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./code-split": {
+      "types": "./dist/plugins/codeSplit.d.ts",
+      "import": "./dist/plugins/codeSplit.js",
+      "require": "./dist/plugins/codeSplit.cjs"
+    },
+    "./env-loader": {
+      "types": "./dist/plugins/envLoader.d.ts",
+      "import": "./dist/plugins/envLoader.js",
+      "require": "./dist/plugins/envLoader.cjs"
+    },
+    "./image-to-cdn": {
+      "types": "./dist/plugins/imageToCdn.d.ts",
+      "import": "./dist/plugins/imageToCdn.js",
+      "require": "./dist/plugins/imageToCdn.cjs"
+    },
+    "./js-as-jsx": {
+      "types": "./dist/plugins/jsAsJsx.d.ts",
+      "import": "./dist/plugins/jsAsJsx.js",
+      "require": "./dist/plugins/jsAsJsx.cjs"
+    },
+    "./postcss-shadow-dom": {
+      "types": "./dist/plugins/postcssShadowDom.d.ts",
+      "import": "./dist/plugins/postcssShadowDom.js",
+      "require": "./dist/plugins/postcssShadowDom.cjs"
+    },
+    "./public-css-manage": {
+      "types": "./dist/plugins/publicCssManage.d.ts",
+      "import": "./dist/plugins/publicCssManage.js",
+      "require": "./dist/plugins/publicCssManage.cjs"
+    },
+    "./build-log-modifier": {
+      "types": "./dist/plugins/buildLogModifier.d.ts",
+      "import": "./dist/plugins/buildLogModifier.js",
+      "require": "./dist/plugins/buildLogModifier.cjs"
+    },
+    "./custom-config": {
+      "types": "./dist/plugins/customConfig.d.ts",
+      "import": "./dist/plugins/customConfig.js",
+      "require": "./dist/plugins/customConfig.cjs"
+    },
+    "./proxy-redirects": {
+      "types": "./dist/plugins/proxyRedirects.d.ts",
+      "import": "./dist/plugins/proxyRedirects.js",
+      "require": "./dist/plugins/proxyRedirects.cjs"
+    },
+    "./logger": {
+      "types": "./dist/utils/logger.d.ts",
+      "import": "./dist/utils/logger.js",
+      "require": "./dist/utils/logger.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "proxy",
+    "redirects",
+    "netlify",
+    "vercel",
+    "nginx",
+    "logger",
+    "code-split",
+    "cdn",
+    "postcss",
+    "shadow-dom",
+    "jsx"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "vite": "^5.0.0 || ^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "postcss": "^8.4.0",
+    "typescript": "^5.5.0",
+    "vite": "^6.0.0"
+  }
+}

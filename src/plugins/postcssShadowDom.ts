@@ -1,0 +1,77 @@
+import postcss, { type Root } from 'postcss';
+import type { Plugin } from 'vite';
+
+export interface PostcssShadowDomOptions {
+  themePrefix?: string;
+  targetHost?: boolean;
+}
+
+/**
+ * Vite plugin that configures PostCSS to adapt Tailwind CSS & global styles for Shadow DOM / Web Components.
+ */
+export default function postcssShadowDomPlugin(options: PostcssShadowDomOptions = {}): Plugin {
+  const themePrefix = options.themePrefix || '.theme-';
+
+  return {
+    name: 'vite-plugin-postcss-shadow-dom',
+    config(config) {
+      config.css = config.css || {};
+
+      if (!config.css.postcss || typeof config.css.postcss === 'string') {
+        config.css.postcss = {};
+      }
+
+      const postcssObj = config.css.postcss as Extract<typeof config.css.postcss, object>;
+      postcssObj.plugins = Array.isArray(postcssObj.plugins) ? postcssObj.plugins : [];
+
+      postcssObj.plugins.push({
+        postcssPlugin: 'postcss-shadow-dom-tailwind-fix',
+        Once(root: Root) {
+          const cssContent = root.source?.input?.css || '';
+          const hasLayerProps = cssContent.includes('properties');
+          const hasRoot = cssContent.includes(':root');
+          const hasTheme = cssContent.includes(themePrefix);
+
+          if (!hasLayerProps && !hasRoot && !hasTheme) return;
+
+          // 1. Target and replace complex nested fallback blocks
+          if (hasLayerProps) {
+            root.walkAtRules('layer', layerAtRule => {
+              if (layerAtRule.params === 'properties') {
+                layerAtRule.walkAtRules('supports', supportsAtRule => {
+                  if (supportsAtRule.params.includes('-webkit-hyphens:none')) {
+                    supportsAtRule.walkRules(rule => {
+                      if (rule.selector.includes('*,:before,:after')) {
+                        const cleanHostRule = postcss.rule({ selector: ':host' });
+                        rule.nodes.forEach(node => cleanHostRule.append(node.clone()));
+                        layerAtRule.parent?.insertBefore(layerAtRule, cleanHostRule);
+                        layerAtRule.remove();
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          }
+
+          // 2. Convert standard :root to :host and scope theme classes
+          if (hasRoot || hasTheme) {
+            root.walkRules(rule => {
+              if (hasRoot && rule.selector.includes(':root')) {
+                rule.selector = rule.selector.replaceAll(':root', ':host');
+              }
+
+              if (hasTheme && rule.selector.includes(themePrefix)) {
+                rule.selectors = rule.selectors.map(selector => {
+                  const trimmed = selector.trim();
+                  if (trimmed.startsWith(themePrefix)) return `:host(${trimmed})`;
+                  return selector;
+                });
+              }
+            });
+          }
+        },
+      });
+    },
+  };
+}
