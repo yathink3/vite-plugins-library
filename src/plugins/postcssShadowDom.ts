@@ -4,8 +4,6 @@ import type { Plugin } from 'vite';
 export interface PostcssShadowDomOptions {
   themePrefix?: string;
   targetHost?: boolean;
-  headerComment?: string;
-  removeComments?: boolean;
 }
 
 /**
@@ -13,10 +11,6 @@ export interface PostcssShadowDomOptions {
  */
 export default function postcssShadowDomPlugin(options: PostcssShadowDomOptions = {}): Plugin {
   const themePrefix = options.themePrefix || '.theme-';
-  const removeComments = options.removeComments !== false;
-  const headerComment = options.headerComment !== undefined
-    ? options.headerComment
-    : '! tailwindcss v4.3.0 shadow-dom';
 
   return {
     name: 'vite-plugin-postcss-shadow-dom',
@@ -82,21 +76,17 @@ export default function postcssShadowDomPlugin(options: PostcssShadowDomOptions 
           }
 
           // 3. Remove all existing comments
-          if (removeComments) {
-            root.walkComments(comment => {
-              comment.remove();
-            });
-          }
+          root.walkComments(comment => {
+            comment.remove();
+          });
 
           // 4. Prepend header comment at beginning of CSS
-          if (headerComment) {
-            let cleanCommentText = headerComment.trim();
-            if (cleanCommentText.startsWith('/*') && cleanCommentText.endsWith('*/')) {
-              cleanCommentText = cleanCommentText.slice(2, -2).trim();
-            }
-            const raws = cleanCommentText.startsWith('!') ? { left: '', right: ' ' } : undefined;
-            root.prepend(postcss.comment({ text: cleanCommentText, raws }));
-          }
+          root.prepend(
+            postcss.comment({
+              text: '! tailwindcss v4+ shadow-dom',
+              raws: { left: '', right: ' ' },
+            })
+          );
         },
       });
     },
