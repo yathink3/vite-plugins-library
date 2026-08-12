@@ -1,5 +1,11 @@
+/**
+ * Severity level types for boxed console log messages.
+ */
 export type LogType = 'info' | 'warn' | 'error' | 'success';
 
+/**
+ * Lightweight ANSI color utility functions for terminal text formatting.
+ */
 export const colors = {
   green: (s: string) => `\x1b[32m${s}\x1b[0m`,
   yellow: (s: string) => `\x1b[33m${s}\x1b[0m`,
@@ -11,6 +17,12 @@ export const colors = {
   white: (s: string) => `\x1b[37m${s}\x1b[0m`,
 };
 
+/**
+ * Output a boxed notification message with status icons and ANSI colors to terminal.
+ *
+ * @param msg - Text content of the log notification.
+ * @param type - Log type identifier determining color and symbol.
+ */
 export function logBox(msg: string, type: LogType = 'info'): void {
   const colorMap: Record<LogType, (s: string) => string> = {
     info: colors.cyan,
@@ -30,6 +42,11 @@ export function logBox(msg: string, type: LogType = 'info'): void {
   console.log(color(`${symbol}  ${msg}`));
 }
 
+/**
+ * Output a step progress line with alternating ANSI colors for each component.
+ *
+ * @param parts - Variadic array of string components forming the step output.
+ */
 export function logStep(...parts: string[]): void {
   const palette = [
     colors.gray,
@@ -47,6 +64,9 @@ export function logStep(...parts: string[]): void {
   console.log(`  ${colors.cyan('↪')} ${colored.join(' ')}`);
 }
 
+/**
+ * Standalone logger instance providing colored terminal messaging, boxed notifications, and step indicators.
+ */
 export const logger = {
   colors,
   box: logBox,

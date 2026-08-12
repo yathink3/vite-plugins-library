@@ -3,14 +3,42 @@ import path from 'path';
 import { loadEnv, type Plugin } from 'vite';
 import { logger, logBox, logStep } from '../utils/logger';
 
+/**
+ * Supported target platforms for outputting deployment redirect rules.
+ */
 export type DeployPlatform = 'netlify' | 'vercel' | 'nginx' | string;
 
+/**
+ * Options for the proxyRedirectsPlugin.
+ */
 export interface ProxyRedirectsOptions {
+  /**
+   * Relative path to the template file containing proxy/redirect rules.
+   * @default 'redirects.template'
+   */
   templateFile?: string;
+  /**
+   * Inline template string containing proxy/redirect rules. Overrides `templateFile` if provided.
+   */
   templateString?: string;
+  /**
+   * Custom key-value map of environment variable replacements for template placeholders (`{{VAR_NAME}}`).
+   */
   envMap?: Record<string, string>;
+  /**
+   * Target deployment platform for production build redirect output (`'netlify'`, `'vercel'`, or `'nginx'`).
+   * @default 'netlify'
+   */
   deployPlatform?: DeployPlatform;
+  /**
+   * If true, suppresses writing production redirect files during build.
+   * @default false
+   */
   ignoreBuild?: boolean;
+  /**
+   * Custom output directory path for generated redirect configuration files. Defaults to Vite build outDir.
+   */
+  outDir?: string;
 }
 
 const getLines = (tpl: string): string[] =>
@@ -167,7 +195,7 @@ export default function proxyRedirectsPlugin(options: ProxyRedirectsOptions = {}
       }
     },
     configResolved(config) {
-      outDir = config.build.outDir || 'dist';
+      outDir = options.outDir || config.build.outDir || 'dist';
     },
     generateBundle() {
       const isProd = process.env.NODE_ENV === 'production';

@@ -1,15 +1,43 @@
 import postcss, { type Root } from 'postcss';
 import type { Plugin } from 'vite';
 
+/**
+ * Options for the postcssShadowDomTailwindPlugin.
+ */
 export interface PostcssShadowDomOptions {
+  /**
+   * Class prefix used for scoping theme classes inside `:host(...)`.
+   * @default '.theme-'
+   */
   themePrefix?: string;
+  /**
+   * Whether to convert `:root` selectors to `:host` for Web Component scoping.
+   * @default true
+   */
+  convertRootToHost?: boolean;
+  /**
+   * Whether to remove existing CSS comments.
+   * @default true
+   */
+  removeComments?: boolean;
+  /**
+   * Custom header comment string prepended to compiled output CSS. Set to `null` or `''` to omit.
+   * @default '! tailwindcss v4+ shadow-dom'
+   */
+  headerComment?: string | null;
 }
 
 /**
- * Vite plugin that configures PostCSS to adapt Tailwind CSS & global styles for Shadow DOM / Web Components.
+ * Vite plugin that configures PostCSS to adapt Tailwind CSS v4+ & global styles for Web Components / Shadow DOM by converting `:root` to `:host`.
+ *
+ * @param options - Configuration options for theme prefix scoping, root-to-host conversion, and comment options.
+ * @returns A Vite Plugin object.
  */
 export default function postcssShadowDomTailwindPlugin(options: PostcssShadowDomOptions = {}): Plugin {
   const themePrefix = options.themePrefix || '.theme-';
+  const shouldConvertRoot = options.convertRootToHost !== false;
+  const shouldRemoveComments = options.removeComments !== false;
+  const headerComment = options.headerComment !== undefined ? options.headerComment : '! tailwindcss v4+ shadow-dom';
 
   return {
     name: 'postcss-shadow-dom-tailwind-plugin',
@@ -56,7 +84,7 @@ export default function postcssShadowDomTailwindPlugin(options: PostcssShadowDom
             root.walkRules(rule => {
               let selectors = rule.selectors;
 
-              if (hasRoot && rule.selector.includes(':root')) {
+              if (shouldConvertRoot && hasRoot && rule.selector.includes(':root')) {
                 selectors = selectors.map(sel => sel.replaceAll(':root', ':host'));
               }
 
@@ -74,18 +102,22 @@ export default function postcssShadowDomTailwindPlugin(options: PostcssShadowDom
             });
           }
 
-          // 3. Remove all existing comments
-          root.walkComments(comment => {
-            comment.remove();
-          });
+          // 3. Remove all existing comments if enabled
+          if (shouldRemoveComments) {
+            root.walkComments(comment => {
+              comment.remove();
+            });
+          }
 
-          // 4. Prepend header comment at beginning of CSS
-          root.prepend(
-            postcss.comment({
-              text: '! tailwindcss v4+ shadow-dom',
-              raws: { left: '', right: ' ' },
-            })
-          );
+          // 4. Prepend header comment at beginning of CSS if provided
+          if (headerComment) {
+            root.prepend(
+              postcss.comment({
+                text: headerComment,
+                raws: { left: '', right: ' ' },
+              })
+            );
+          }
         },
       });
     },

@@ -1,9 +1,9 @@
 import { transformWithEsbuild, type Plugin } from 'vite';
 
-export interface JsAsJsxOptions {
-  include?: RegExp[];
-  exclude?: RegExp[];
-}
+/**
+ * Options for the jsAsJsxPlugin.
+ */
+export interface JsAsJsxOptions {}
 
 const JSX_REGEX = /<([A-Za-z]|Fragment|\>)/;
 
@@ -13,11 +13,13 @@ function containsJSX(code: string): boolean {
 }
 
 /**
- * A Vite plugin that treats .js and .ts files containing JSX as .jsx and .tsx using OXC / Esbuild transformer.
+ * Vite plugin that enables writing JSX syntax inside standard `.js` and `.ts` files without requiring `.jsx` or `.tsx` file extensions.
+ *
+ * @returns A Vite Plugin object.
  */
-export default function jsAsJsxPlugin(options: JsAsJsxOptions = {}): Plugin {
-  const includeList = options.include || [/\.(js|ts)$/];
-  const excludeList = options.exclude || /[\\/]node_modules[\\/]/;
+export default function jsAsJsxPlugin(_options: JsAsJsxOptions = {}): Plugin {
+  const includeList = [/\.(js|ts)$/];
+  const excludeList = [/[\\/]node_modules[\\/]/];
 
   return {
     name: 'vite-plugin-js-as-jsx',

@@ -32,7 +32,8 @@ export default defineConfig({
         'node:url',
       ],
     },
-    sourcemap: true,
+    sourcemap: false,
+    minify: 'esbuild',
     emptyOutDir: true,
   },
 });

@@ -2,19 +2,40 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { createLogger, preprocessCSS, type Plugin, type ResolvedConfig } from 'vite';
 
+/**
+ * Options for the publicCssManagePlugin.
+ */
 export interface PublicCssManageOptions {
+  /**
+   * List of folder names inside the public directory containing CSS assets to manage and optimize.
+   * @default ['css']
+   */
   folders?: string[];
+  /**
+   * Whether to minify public CSS assets during production builds.
+   * @default true
+   */
   minifyInProduction?: boolean;
+  /**
+   * Target HTML file name relative to output directory for public CSS optimization.
+   * @default 'index.html'
+   */
+  targetHtml?: string;
 }
 
 /**
- * Combined plugin to manage public assets rewrites in dev mode
- * and optimization/minification during production builds.
+ * Combined Vite plugin to manage public CSS asset path rewrites in development mode and optimize/minify public CSS files during production builds.
+ *
+ * @param options - Configuration options object or an array of public directory folder names.
+ * @returns A Vite Plugin object.
  */
 export default function publicCssManagePlugin(options: PublicCssManageOptions | string[] = {}): Plugin {
   const folders = Array.isArray(options)
     ? options
     : options.folders || ['css'];
+
+  const shouldMinify = Array.isArray(options) ? true : options.minifyInProduction !== false;
+  const targetHtml = Array.isArray(options) ? 'index.html' : options.targetHtml || 'index.html';
 
   if (!Array.isArray(folders) || folders.some(f => typeof f !== 'string')) {
     throw new Error('The "folders" option must be an array of strings.');
@@ -51,9 +72,9 @@ export default function publicCssManagePlugin(options: PublicCssManageOptions | 
       return transformedHtml;
     },
     async closeBundle() {
-      if (isDevMode || !viteConfig) return;
+      if (isDevMode || !shouldMinify || !viteConfig) return;
       const outDir = viteConfig.build.outDir || 'dist';
-      const indexPath = resolve(outDir, 'index.html');
+      const indexPath = resolve(outDir, targetHtml);
       const configWithCss = {
         ...viteConfig,
         css: {

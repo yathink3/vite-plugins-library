@@ -93,7 +93,7 @@ export default defineConfig({
 
 ### 3. Code Splitting & Output Formatting Plugin
 
-Organizes compiled production build assets into structured subdirectories (`a/` for assets, `c/` for CSS, `j/` for JS chunks).
+Organizes compiled production build assets into custom subdirectories (`jsDir`, `cssDir`, `assetDir`).
 
 ```ts
 import { defineConfig } from 'vite';
@@ -190,7 +190,7 @@ export default defineConfig({
 
 ### 8. Custom Config & Alias Plugin
 
-Auto-configures standard path aliases (`@` -> `./src`) and deduplicates React dependencies.
+Auto-configures path aliases (`@` -> `./src`) and deduplicates React dependencies.
 
 ```ts
 import { defineConfig } from 'vite';
@@ -200,7 +200,6 @@ export default defineConfig({
   plugins: [
     customConfigPlugin({
       alias: { '@': '/src' },
-      dedupeReact: true,
     }),
   ],
 });
