@@ -111,19 +111,30 @@ export default function autoAliasPlugin(options: AutoAliasOptions = {}): Plugin 
           const entries = fs.readdirSync(absSrcDir, { withFileTypes: true });
           for (const entry of entries) {
             if (entry.isDirectory()) {
-              const aliasName = `${prefix}${entry.name}`;
               const targetPath = path.join(absSrcDir, entry.name);
 
-              if (!resolvedAliases.some(a => a.find === aliasName)) {
-                resolvedAliases.push({ find: aliasName, replacement: targetPath });
+              // Direct subfolder alias (e.g. 'utils' -> '/src/utils', 'components' -> '/src/components')
+              if (!resolvedAliases.some(a => a.find === entry.name)) {
+                resolvedAliases.push({ find: entry.name, replacement: targetPath });
+              }
+
+              // Prefixed subfolder alias (e.g. '@utils' -> '/src/utils')
+              if (prefix && prefix !== '') {
+                const aliasName = `${prefix}${entry.name}`;
+                if (!resolvedAliases.some(a => a.find === aliasName)) {
+                  resolvedAliases.push({ find: aliasName, replacement: targetPath });
+                }
               }
             }
           }
 
-          // Default root alias (e.g. '@' -> src)
+          // Default root alias (e.g. '@' -> src and 'src' -> src)
           const rootAlias = prefix || '@';
           if (!resolvedAliases.some(a => a.find === rootAlias)) {
             resolvedAliases.push({ find: rootAlias, replacement: absSrcDir });
+          }
+          if (!resolvedAliases.some(a => a.find === 'src')) {
+            resolvedAliases.push({ find: 'src', replacement: absSrcDir });
           }
         } catch (err: any) {
           logStep('alias', '[WARNING]', `Failed to read ${srcDir} directory: ${err.message}`);

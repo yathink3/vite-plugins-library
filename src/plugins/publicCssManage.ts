@@ -79,7 +79,6 @@ export default function publicCssManagePlugin(options: PublicCssManageOptions | 
         ...viteConfig,
         css: {
           ...viteConfig.css,
-          transformer: 'lightningcss' as const,
           minify: true,
         },
       } as ResolvedConfig;

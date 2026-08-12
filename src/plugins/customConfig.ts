@@ -54,7 +54,7 @@ export default function customConfigPlugin(options: CustomConfigOptions = {}): P
     srcDir: targetDirName,
     customAliases,
     dedupePackages: dedupe,
-    autoMapSrcFolders: false,
+    autoMapSrcFolders: true,
   });
 
   return {
