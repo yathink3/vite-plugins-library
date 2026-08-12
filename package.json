@@ -2,6 +2,9 @@
   "name": "vite-plugins-library",
   "version": "1.2.0",
   "description": "A curated collection of production-ready custom Vite plugins and standalone CLI logger utilities inspired by enterprise Vite configurations.",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
