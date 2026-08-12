@@ -134,7 +134,7 @@ export default function licenseNoticePlugin(options: LicenseNoticeOptions = {}):
         }
       }
 
-      logStep('licenses', `Audited ${dependencies.size} third-party open source dependency licenses`);
+      logStep('licenses', '[INFO]', `Audited ${dependencies.size} third-party open source dependency licenses`);
 
       const depList = Array.from(dependencies.values()).sort((a, b) => a.name.localeCompare(b.name));
 

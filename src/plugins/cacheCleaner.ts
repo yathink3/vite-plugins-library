@@ -103,13 +103,14 @@ export default function cacheCleanerPlugin(options: CacheCleanerOptions = {}): P
 
           if (verbose) {
             logStep(
-              'info',
+              'cache',
+              '[SUCCESS]',
               `Purged stale Vite dependency cache at ${path.relative(rootDir, targetCacheDir)} due to updated dependencies.`
             );
           }
         } catch (err: any) {
           if (verbose) {
-            logStep('warn', `Failed to purge Vite dependency cache: ${err.message}`);
+            logStep('cache', '[WARNING]', `Failed to purge Vite dependency cache: ${err.message}`);
           }
         }
       }

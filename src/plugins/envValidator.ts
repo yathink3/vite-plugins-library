@@ -137,7 +137,7 @@ export default function envValidatorPlugin(options: EnvValidatorOptions = {}): P
       if (errors.length > 0) {
         logBox(`Environment Variable Validation Failed (${errors.length} error${errors.length > 1 ? 's' : ''})`, 'error');
         for (const err of errors) {
-          logStep('fail', err);
+          logStep('env', '[ERROR]', err);
         }
         if (isStrict) {
           throw new Error(`[envValidatorPlugin] Build aborted due to ${errors.length} environment validation failure(s).`);

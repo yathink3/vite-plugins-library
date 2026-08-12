@@ -143,7 +143,7 @@ const buildProxyMap = (template: string, envMap: Record<string, string>, log: bo
     const resolved = applyEnv(raw, envMap);
     const { target, pathPart } = splitTargetPath(resolved);
     proxy[route] = makeProxyEntry(route, { target, pathPart });
-    if (log) logStep('rewrite', route, '→', `${target}${pathPart}`);
+    if (log) logStep('proxy', '[REWRITE]', route, '→', `${target}${pathPart}`);
   }
   return proxy;
 };
@@ -221,9 +221,8 @@ export default function proxyRedirectsPlugin(options: ProxyRedirectsOptions = {}
             logBox(`Unknown deploy platform. Set DEPLOY_PLATFORM=netlify|vercel|nginx`, 'warn');
             return;
           }
-          console.log('\n');
-          buildProxyMap(lines.join('\n'), activeEnvMap, true);
           logBox(successMessage, 'success');
+          buildProxyMap(lines.join('\n'), activeEnvMap, true);
         } catch (e: any) {
           logBox(`Failed writing redirects: ${e.message}`, 'error');
         }

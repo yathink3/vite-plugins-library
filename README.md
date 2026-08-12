@@ -37,13 +37,12 @@ All plugins support both **main library imports** and **tree-shakable subpath im
 | `autoAliasPlugin` | `vite-plugins-library/auto-alias` | **Unified**: Resolves `tsconfig.json` path mappings, auto-creates `@` subfolder aliases for `src/`, and deduplicates package dependencies. |
 | `envValidatorPlugin` | `vite-plugins-library/env-validator` | **Unified**: Build-time `.env` variable schema validator with optional `injectToProcessEnv` process.env definition. |
 | `devFallbackPlugin` | `vite-plugins-library/dev-fallback` | **Unified**: Intercepts dev server proxy errors (502/503/504), API mock endpoints, or missing 404 routes to serve mock responses or custom SPA error pages. |
+| `buildScorerPlugin` | `vite-plugins-library/build-scorer` | **Unified**: Combined build quality scoring, transform performance profiling (file extension metrics & slow transform detection), and bundle budget health auditor (0–100 score, A–F grades). |
 | `securityHeadersPlugin` | `vite-plugins-library/security-headers` | Dev/preview HTTP security headers (CSP, COOP for `SharedArrayBuffer`, HSTS, X-Frame-Options) & production host config export (`_headers`, `vercel.json`, `nginx.conf`). |
 | `bannerNoticePlugin` | `vite-plugins-library/banner-notice` | Dynamic copyright, license, version, author, git commit hash, and build timestamp banner prepender for JS & CSS bundles. |
 | `svgSpritePlugin` | `vite-plugins-library/svg-sprite` | SVG icon pack bundler creating single `<symbol>` SVG sprite sheet (`sprite.svg`) with virtual module & HTML inject support. |
 | `resourceHintsPlugin` | `vite-plugins-library/resource-hints` | Core Web Vitals LCP optimizer injecting `<link rel="modulepreload">`, font preloads, CSS preloads, `preconnect`, and `dns-prefetch`. |
 | `cacheCleanerPlugin` | `vite-plugins-library/cache-cleaner` | Solves Vite's #1 dev pain point by auto-purging stale `node_modules/.vite` dependency cache when `package.json`/lockfiles update. |
-| `buildPerformancePlugin` | `vite-plugins-library/build-performance` | Build duration tracker, file transform metrics per extension, and slow transform warning analyzer for `vite build`. |
-| `buildScorerPlugin` | `vite-plugins-library/build-scorer` | Project build quality audit & scoring plugin giving a 0–100 score, letter grades (A+, A, B, C, F), and optimization tips. |
 | `customConfigPlugin` | `vite-plugins-library/custom-config` | *(Wrapper)* Path alias & React deduplication wrapper delegating to `autoAliasPlugin`. |
 | `envLoaderPlugin` | `vite-plugins-library/env-loader` | *(Wrapper)* Environment variable loader wrapper delegating to `envValidatorPlugin`. |
 | `apiMockPlugin` | `vite-plugins-library/api-mock` | *(Wrapper)* Dev server API mock middleware wrapper delegating to `devFallbackPlugin`. |
@@ -365,22 +364,23 @@ export default defineConfig({
 
 ---
 
-### 15. Bundle Size Budget & Threshold Guard Plugin
+### 15. Unified Project Build Quality Scorer & Performance Auditor Plugin
 
-Audits output bundle chunk and asset sizes post-build, enforces configurable byte limits (`maxChunkSize`, `maxTotalSize`), prints terminal size breakdowns, and generates optional JSON reports.
+Combines production build quality scoring, letter grades (`A+`, `A`, `B`, `C`, `F`), bundle size budget audits, and transform performance bottleneck profiling into a single unified build auditor.
 
 ```ts
 import { defineConfig } from 'vite';
-import { bundleBudgetPlugin } from 'vite-plugins-library/bundle-budget';
+import { buildScorerPlugin } from 'vite-plugins-library/build-scorer';
 
 export default defineConfig({
   plugins: [
-    bundleBudgetPlugin({
-      maxChunkSize: '500kb',
-      maxAssetSize: '250kb',
-      maxTotalSize: '2mb',
-      warnOnly: true,
-      reportFile: 'bundle-report.json',
+    buildScorerPlugin({
+      maxChunkSizeKb: 500,
+      maxTotalBundleMb: 5,
+      slowTransformThresholdMs: 500,
+      minScoreToPass: 75,
+      strict: false, // Set true to fail build if score < minScoreToPass
+      jsonReportPath: 'build-score.json',
     }),
   ],
 });
@@ -595,49 +595,6 @@ export default defineConfig({
   plugins: [
     cacheCleanerPlugin({
       verbose: true, // Logs CLI notice when stale dependency cache is purged
-    }),
-  ],
-});
-```
-
----
-
-### 26. Build Duration & Transform Bottleneck Analyzer Plugin
-
-Tracks build timings across Rollup hooks, measures module transformation speed per file extension (`.ts`, `.tsx`, `.vue`, `.css`), flags slow file transforms exceeding threshold (e.g. >500ms), and displays an ANSI terminal summary box upon build completion.
-
-```ts
-import { defineConfig } from 'vite';
-import { buildPerformancePlugin } from 'vite-plugins-library/build-performance';
-
-export default defineConfig({
-  plugins: [
-    buildPerformancePlugin({
-      slowTransformThresholdMs: 500,
-      topSlowFilesCount: 5,
-    }),
-  ],
-});
-```
-
----
-
-### 27. Project Build Quality Scorer & Health Audit Plugin
-
-Audits production build outputs against 4 categories (Bundle Health, Asset Optimization, Build Speed, Production Readiness), computes a 0–100 score with letter grades (`A+`, `A`, `B`, `C`, `F`), prints optimization recommendations, and optionally exports JSON reports or enforces CI quality gates (`strict: true`).
-
-```ts
-import { defineConfig } from 'vite';
-import { buildScorerPlugin } from 'vite-plugins-library/build-scorer';
-
-export default defineConfig({
-  plugins: [
-    buildScorerPlugin({
-      maxChunkSizeKb: 500,
-      maxTotalBundleMb: 5,
-      minScoreToPass: 75,
-      strict: false, // Set true to fail build if score < minScoreToPass
-      jsonReportPath: 'build-score.json',
     }),
   ],
 });

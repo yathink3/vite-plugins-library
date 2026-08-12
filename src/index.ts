@@ -37,9 +37,6 @@ export type { HtmlMetaOptions, OpenGraphMetaOptions, TwitterCardMetaOptions } fr
 export { default as apiMockPlugin } from './plugins/apiMock';
 export type { ApiMockPluginOptions, MockEndpoint } from './plugins/apiMock';
 
-export { default as bundleBudgetPlugin } from './plugins/bundleBudget';
-export type { BundleBudgetOptions } from './plugins/bundleBudget';
-
 export { default as autoAliasPlugin } from './plugins/autoAlias';
 export type { AutoAliasOptions } from './plugins/autoAlias';
 
@@ -69,9 +66,6 @@ export type { ResourceHintsOptions } from './plugins/resourceHints';
 
 export { default as cacheCleanerPlugin } from './plugins/cacheCleaner';
 export type { CacheCleanerOptions } from './plugins/cacheCleaner';
-
-export { default as buildPerformancePlugin } from './plugins/buildPerformance';
-export type { BuildPerformanceOptions } from './plugins/buildPerformance';
 
 export { default as buildScorerPlugin } from './plugins/buildScorer';
 export type { BuildScorerOptions, BuildScoreReport, ScoreCategory } from './plugins/buildScorer';

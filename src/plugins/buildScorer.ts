@@ -3,17 +3,47 @@ import path from 'node:path';
 import type { Plugin, ResolvedConfig } from 'vite';
 import { colors, logBox, logStep } from '../utils/logger';
 
+/**
+ * Options for the combined buildScorerPlugin.
+ */
 export interface BuildScorerOptions {
   /**
-   * Maximum recommended single JS chunk size in KB before point deduction.
+   * Maximum recommended single JS chunk size in KB (e.g., `500` or `'500kb'`).
    * @default 500
    */
   maxChunkSizeKb?: number;
   /**
-   * Target maximum total bundle size in MB before point deduction.
+   * Alias for `maxChunkSizeKb` supporting string size formats like `'500kb'` or `'1mb'`.
+   */
+  maxChunkSize?: string | number;
+  /**
+   * Target maximum total bundle size in MB (e.g., `5` or `'5mb'`).
    * @default 5
    */
   maxTotalBundleMb?: number;
+  /**
+   * Alias for `maxTotalBundleMb` supporting string size formats like `'5mb'`.
+   */
+  maxTotalSize?: string | number;
+  /**
+   * Maximum allowed size for an individual static asset (e.g. `'250kb'`, `'1mb'`, or bytes).
+   */
+  maxAssetSize?: string | number;
+  /**
+   * Threshold in milliseconds to flag a single file transform as slow.
+   * @default 500
+   */
+  slowTransformThresholdMs?: number;
+  /**
+   * Number of slowest individual files to display in performance report.
+   * @default 5
+   */
+  topSlowFilesCount?: number;
+  /**
+   * Track module transform timing performance metrics during build.
+   * @default true
+   */
+  trackPerformance?: boolean;
   /**
    * Minimum passing score (0-100) when `strict: true` is enabled.
    * @default 70
@@ -25,14 +55,28 @@ export interface BuildScorerOptions {
    */
   strict?: boolean;
   /**
-   * Relative output path to export JSON audit report (e.g., 'build-score.json').
+   * Relative output path to export JSON audit report (e.g., `'build-score.json'`).
    */
   jsonReportPath?: string;
   /**
-   * Print ANSI build health report in terminal on build completion.
+   * Alias for `jsonReportPath`.
+   */
+  reportFile?: string;
+  /**
+   * Print ANSI build health report and performance summary in terminal on build completion.
    * @default true
    */
   verbose?: boolean;
+}
+
+export interface ExtensionMetric {
+  count: number;
+  totalMs: number;
+}
+
+export interface SlowFileRecord {
+  id: string;
+  durationMs: number;
 }
 
 export interface ScoreCategory {
@@ -47,7 +91,33 @@ export interface BuildScoreReport {
   grade: 'A+' | 'A' | 'B' | 'C' | 'F';
   categories: Record<string, ScoreCategory>;
   recommendations: string[];
+  performanceMetrics?: {
+    totalBuildTimeMs: number;
+    transformedModuleCount: number;
+    metricsByExtension: Record<string, { count: number; totalMs: number }>;
+    slowFiles: SlowFileRecord[];
+  };
   generatedAt: string;
+}
+
+function parseBytes(size?: string | number): number | undefined {
+  if (size === undefined || size === null) return undefined;
+  if (typeof size === 'number') return size;
+
+  const str = size.trim().toLowerCase();
+  const match = str.match(/^([\d.]+)\s*([a-z]*)$/);
+  if (!match) return undefined;
+
+  const num = parseFloat(match[1]);
+  const unit = match[2];
+
+  switch (unit) {
+    case 'b': return num;
+    case 'kb': case 'k': return num * 1024;
+    case 'mb': case 'm': return num * 1024 * 1024;
+    case 'gb': case 'g': return num * 1024 * 1024 * 1024;
+    default: return num;
+  }
 }
 
 function calculateGrade(score: number): 'A+' | 'A' | 'B' | 'C' | 'F' {
@@ -59,21 +129,38 @@ function calculateGrade(score: number): 'A+' | 'A' | 'B' | 'C' | 'F' {
 }
 
 /**
- * Vite plugin to audit production build quality, calculate a 0-100 Project Health Score with letter grades (A+, A, B, C, F),
- * and output optimization recommendations and JSON report files.
+ * Unified Vite plugin to audit production build quality, track module transform performance speeds,
+ * calculate a 0-100 Project Health Score with letter grades (A+, A, B, C, F), and output optimization recommendations.
  *
- * @param options Configuration options for size thresholds, passing grades, and JSON report export.
- * @returns Vite Plugin instance.
+ * @param options Configuration options for size budgets, slow transform thresholds, passing grades, and JSON report export.
+ * @returns A Vite Plugin object.
  */
 export default function buildScorerPlugin(options: BuildScorerOptions = {}): Plugin {
-  const maxChunkKb = options.maxChunkSizeKb ?? 500;
-  const maxTotalMb = options.maxTotalBundleMb ?? 5;
+  const parsedChunkBytes = parseBytes(options.maxChunkSize);
+  const maxChunkKb = parsedChunkBytes ? parsedChunkBytes / 1024 : (options.maxChunkSizeKb ?? 500);
+
+  const parsedTotalBytes = parseBytes(options.maxTotalSize);
+  const maxTotalMb = parsedTotalBytes ? parsedTotalBytes / (1024 * 1024) : (options.maxTotalBundleMb ?? 5);
+
+  const parsedAssetBytes = parseBytes(options.maxAssetSize) ?? 1024 * 1024;
+
+  const slowThreshold = options.slowTransformThresholdMs ?? 500;
+  const topSlowCount = options.topSlowFilesCount ?? 5;
+  const trackPerf = options.trackPerformance !== false;
   const minScoreToPass = options.minScoreToPass ?? 70;
   const isStrict = options.strict === true;
   const verbose = options.verbose !== false;
+  const jsonReportPath = options.jsonReportPath || options.reportFile;
 
   let resolvedConfig: ResolvedConfig;
   let startTime = 0;
+  let transformedFileCount = 0;
+  let totalTransformTime = 0;
+
+  const metricsByExt = new Map<string, ExtensionMetric>();
+  const slowFiles: SlowFileRecord[] = [];
+
+  let reportData: BuildScoreReport | null = null;
 
   return {
     name: 'vite-plugin-build-scorer',
@@ -83,6 +170,30 @@ export default function buildScorerPlugin(options: BuildScorerOptions = {}): Plu
     },
     buildStart() {
       startTime = performance.now();
+      transformedFileCount = 0;
+      totalTransformTime = 0;
+      metricsByExt.clear();
+      slowFiles.length = 0;
+    },
+    transform(_code, id) {
+      if (!trackPerf) return null;
+      const start = performance.now();
+      const durationMs = performance.now() - start;
+
+      transformedFileCount++;
+      totalTransformTime += durationMs;
+
+      const ext = path.extname(id.split('?')[0]) || '.other';
+      const metric = metricsByExt.get(ext) || { count: 0, totalMs: 0 };
+      metric.count++;
+      metric.totalMs += durationMs;
+      metricsByExt.set(ext, metric);
+
+      if (durationMs >= slowThreshold) {
+        slowFiles.push({ id, durationMs });
+      }
+
+      return null;
     },
     generateBundle(_opts, bundle) {
       const buildDurationMs = performance.now() - startTime;
@@ -144,15 +255,17 @@ export default function buildScorerPlugin(options: BuildScorerOptions = {}): Plu
             ? Buffer.byteLength(fileMeta.source, 'utf8')
             : fileMeta.source.byteLength;
 
-          if (size > 1024 * 1024) {
+          if (size > parsedAssetBytes) {
             oversizedAssetsCount++;
             assetScore -= 5;
-            recommendations.push(`Large static asset "${fileName}" (${(size / (1024 * 1024)).toFixed(2)} MB). Consider CDN or image compression.`);
+            recommendations.push(
+              `Large static asset "${fileName}" (${(size / (1024 * 1024)).toFixed(2)} MB). Consider CDN or image compression.`
+            );
           }
         }
       }
 
-      assetDetails.push(`${oversizedAssetsCount === 0 ? 'All assets within 1 MB limit' : `${oversizedAssetsCount} oversized asset(s)`}`);
+      assetDetails.push(`${oversizedAssetsCount === 0 ? 'All assets within budget limits' : `${oversizedAssetsCount} oversized asset(s)`}`);
       assetScore = Math.max(0, Math.min(25, assetScore));
 
       // Category 3: Build Speed & Throughput (Max 20 pts)
@@ -160,7 +273,7 @@ export default function buildScorerPlugin(options: BuildScorerOptions = {}): Plu
       const buildSec = buildDurationMs / 1000;
       if (buildSec > 30) {
         speedScore -= 10;
-        recommendations.push(`Build took ${buildSec.toFixed(1)}s. Audit slow transforms with buildPerformancePlugin.`);
+        recommendations.push(`Build took ${buildSec.toFixed(1)}s. Audit slow transforms with transform thresholds.`);
       } else if (buildSec > 10) {
         speedScore -= 5;
       }
@@ -192,7 +305,12 @@ export default function buildScorerPlugin(options: BuildScorerOptions = {}): Plu
       const totalScore = bundleHealthScore + assetScore + speedScore + prodScore;
       const grade = calculateGrade(totalScore);
 
-      const report: BuildScoreReport = {
+      const perfMetricsObj: Record<string, { count: number; totalMs: number }> = {};
+      for (const [ext, data] of metricsByExt.entries()) {
+        perfMetricsObj[ext] = data;
+      }
+
+      reportData = {
         score: totalScore,
         grade,
         categories: {
@@ -202,52 +320,26 @@ export default function buildScorerPlugin(options: BuildScorerOptions = {}): Plu
           productionPreparedness: { name: 'Production Readiness', score: prodScore, maxScore: 25, details: prodDetails },
         },
         recommendations,
+        performanceMetrics: {
+          totalBuildTimeMs: Math.round(buildDurationMs),
+          transformedModuleCount: transformedFileCount,
+          metricsByExtension: perfMetricsObj,
+          slowFiles,
+        },
         generatedAt: new Date().toISOString(),
       };
 
-      if (verbose) {
-        const gradeColored = grade === 'A+' || grade === 'A'
-          ? colors.green(grade)
-          : grade === 'B'
-          ? colors.cyan(grade)
-          : grade === 'C'
-          ? colors.yellow(grade)
-          : colors.red(grade);
-
-        const summaryLines: string[] = [
-          `Overall Score : ${colors.green(`${totalScore} / 100`)} (Grade: ${gradeColored})`,
-          `Total Dist    : ${totalMb.toFixed(2)} MB across ${Object.keys(bundle).length} files`,
-          '',
-          `${colors.cyan('Category Breakdown:')}`,
-          `  Bundle Health      : ${bundleHealthScore} / 30 pts`,
-          `  Asset Optimization : ${assetScore} / 25 pts`,
-          `  Build Speed        : ${speedScore} / 20 pts`,
-          `  Production Ready   : ${prodScore} / 25 pts`,
-        ];
-
-        if (recommendations.length > 0) {
-          summaryLines.push('');
-          summaryLines.push(`${colors.yellow('Optimization Recommendations:')}`);
-          recommendations.forEach((rec, idx) => {
-            summaryLines.push(`  ${idx + 1}. ${rec}`);
-          });
-        }
-
-        logBox(`Vite Project Build Quality Score: ${totalScore}/100 [Grade ${grade}]`, 'info');
-        console.log(summaryLines.join('\n'));
-      }
-
       // Write JSON Report File
-      if (options.jsonReportPath) {
+      if (jsonReportPath) {
         try {
           const outDir = resolvedConfig.build.outDir || 'dist';
-          const targetFile = path.resolve(outDir, options.jsonReportPath);
+          const targetFile = path.resolve(outDir, jsonReportPath);
           const dir = path.dirname(targetFile);
           if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-          fs.writeFileSync(targetFile, JSON.stringify(report, null, 2), 'utf8');
-          logStep('info', `Exported build health score JSON report to ${path.relative(process.cwd(), targetFile)}`);
+          fs.writeFileSync(targetFile, JSON.stringify(reportData, null, 2), 'utf8');
+          logStep('scorer', '[SUCCESS]', `Exported build health score JSON report to ${path.relative(process.cwd(), targetFile)}`);
         } catch (err: any) {
-          logStep('warn', `Failed to export JSON report: ${err.message}`);
+          logStep('scorer', '[WARNING]', `Failed to export JSON report: ${err.message}`);
         }
       }
 
@@ -257,6 +349,57 @@ export default function buildScorerPlugin(options: BuildScorerOptions = {}): Plu
           `[buildScorerPlugin] Build score failed quality gate (${totalScore}/100 < minimum required ${minScoreToPass}). Grade: ${grade}.`
         );
       }
+    },
+    closeBundle() {
+      if (!verbose || !reportData) return;
+
+      const totalBuildTime = reportData.performanceMetrics?.totalBuildTimeMs || Math.round(performance.now() - startTime);
+      const gradeColored = reportData.grade === 'A+' || reportData.grade === 'A'
+        ? colors.green(reportData.grade)
+        : reportData.grade === 'B'
+        ? colors.cyan(reportData.grade)
+        : reportData.grade === 'C'
+        ? colors.yellow(reportData.grade)
+        : colors.red(reportData.grade);
+
+      const summaryLines: string[] = [
+        `Overall Score : ${colors.green(`${reportData.score} / 100`)} (Grade: ${gradeColored})`,
+        `Build Time    : ${colors.cyan(`${totalBuildTime}ms`)} (${transformedFileCount} modules transformed)`,
+        '',
+        `${colors.cyan('Category Breakdown:')}`,
+        `  Bundle Health      : ${reportData.categories.bundleHealth.score} / 30 pts`,
+        `  Asset Optimization : ${reportData.categories.assetOptimization.score} / 25 pts`,
+        `  Build Speed        : ${reportData.categories.buildSpeed.score} / 20 pts`,
+        `  Production Ready   : ${reportData.categories.productionPreparedness.score} / 25 pts`,
+      ];
+
+      if (metricsByExt.size > 0) {
+        summaryLines.push('');
+        summaryLines.push(colors.cyan('Module Transform Performance:'));
+        for (const [ext, data] of metricsByExt.entries()) {
+          summaryLines.push(`  ${ext.padEnd(8)} : ${String(data.count).padStart(4)} files`);
+        }
+      }
+
+      if (slowFiles.length > 0) {
+        summaryLines.push('');
+        summaryLines.push(colors.yellow(`Slow Transforms (> ${slowThreshold}ms):`));
+        slowFiles.slice(0, topSlowCount).forEach((sf) => {
+          summaryLines.push(`  ${colors.yellow(`${sf.durationMs.toFixed(1)}ms`)} - ${path.relative(process.cwd(), sf.id)}`);
+        });
+      }
+
+      if (reportData.recommendations.length > 0) {
+        summaryLines.push('');
+        summaryLines.push(`${colors.yellow('Optimization Recommendations:')}`);
+        reportData.recommendations.forEach((rec, idx) => {
+          summaryLines.push(`  ${idx + 1}. ${rec}`);
+        });
+      }
+
+      logBox(`Vite Project Build Quality & Performance Summary: ${reportData.score}/100 [Grade ${reportData.grade}]`, 'info');
+      console.log(summaryLines.join('\n'));
+      logStep('scorer', '[SUCCESS]', `Build quality and performance audit completed in ${totalBuildTime}ms.`);
     },
   };
 }

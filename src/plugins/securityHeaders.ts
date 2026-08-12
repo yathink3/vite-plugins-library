@@ -163,7 +163,7 @@ export default function securityHeadersPlugin(options: SecurityHeadersOptions = 
             content += `  ${k}: ${v}\n`;
           }
           fs.writeFileSync(filePath, content, 'utf8');
-          logStep('info', `Generated ${fmt} headers at ${path.basename(filePath)}`);
+          logStep('security', '[SUCCESS]', `Generated ${fmt} headers at ${path.basename(filePath)}`);
         } else if (fmt === 'vercel') {
           const filePath = path.join(targetDir, 'vercel.json');
           let existingData: Record<string, any> = {};
@@ -185,7 +185,7 @@ export default function securityHeadersPlugin(options: SecurityHeadersOptions = 
           ];
 
           fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2), 'utf8');
-          logStep('info', `Generated Vercel security headers configuration in vercel.json`);
+          logStep('security', '[SUCCESS]', `Generated Vercel security headers configuration in vercel.json`);
         } else if (fmt === 'nginx') {
           const filePath = path.join(targetDir, 'nginx-security.conf');
           let content = '# Security Headers Nginx snippet\n';
@@ -193,7 +193,7 @@ export default function securityHeadersPlugin(options: SecurityHeadersOptions = 
             content += `add_header ${k} "${v.replace(/"/g, '\\"')}" always;\n`;
           }
           fs.writeFileSync(filePath, content, 'utf8');
-          logStep('info', `Generated Nginx security headers snippet at nginx-security.conf`);
+          logStep('security', '[SUCCESS]', `Generated Nginx security headers snippet at nginx-security.conf`);
         }
       }
     },

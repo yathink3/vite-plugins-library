@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { createLogger, preprocessCSS, type Plugin, type ResolvedConfig } from 'vite';
+import { logStep } from '../utils/logger';
 
 /**
  * Options for the publicCssManagePlugin.
@@ -108,15 +109,15 @@ export default function publicCssManagePlugin(options: PublicCssManageOptions | 
               const { code: optimizedCss } = await preprocessCSS(code, filePath, configWithCss);
               if (optimizedCss) {
                 writeFileSync(filePath, optimizedCss);
-                console.log(`✨ Vite Optimized Public CSS: ${outDir}/${file}`);
+                logStep('public-css', '[SUCCESS]', `Optimized public CSS: ${outDir}/${file}`);
               }
             } catch (e) {
-              console.warn(`Could not optimize ${outDir}/${file}: ${(e as Error).message}`);
+              logStep('public-css', '[WARNING]', `Could not optimize ${outDir}/${file}: ${(e as Error).message}`);
             }
           })
         );
       } catch (error) {
-        console.error(`❌ Error parsing index.html for CSS optimization: ${(error as Error).message}`);
+        logStep('public-css', '[ERROR]', `Error parsing index.html for CSS optimization: ${(error as Error).message}`);
       }
     },
   };

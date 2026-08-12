@@ -1,6 +1,6 @@
 {
   "name": "vite-plugins-library",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "description": "A curated collection of production-ready custom Vite plugins and standalone CLI logger utilities inspired by enterprise Vite configurations.",
   "publishConfig": {
     "access": "public"
@@ -66,10 +66,6 @@
       "types": "./dist/plugins/apiMock.d.ts",
       "import": "./dist/plugins/apiMock.js"
     },
-    "./bundle-budget": {
-      "types": "./dist/plugins/bundleBudget.d.ts",
-      "import": "./dist/plugins/bundleBudget.js"
-    },
     "./auto-alias": {
       "types": "./dist/plugins/autoAlias.d.ts",
       "import": "./dist/plugins/autoAlias.js"
@@ -110,10 +106,6 @@
       "types": "./dist/plugins/cacheCleaner.d.ts",
       "import": "./dist/plugins/cacheCleaner.js"
     },
-    "./build-performance": {
-      "types": "./dist/plugins/buildPerformance.d.ts",
-      "import": "./dist/plugins/buildPerformance.js"
-    },
     "./build-scorer": {
       "types": "./dist/plugins/buildScorer.d.ts",
       "import": "./dist/plugins/buildScorer.js"
@@ -132,6 +124,7 @@
   ],
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
+    "prepublish": "rm -rf ./dist && npm run build",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [

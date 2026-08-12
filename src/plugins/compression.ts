@@ -109,8 +109,16 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
         compressedCount++;
         if (verbose) {
           const relPath = path.relative(outDir, filePath);
-          const gzSize = (fs.statSync(`${filePath}.gz`).size / 1024).toFixed(2);
-          logStep('compress', relPath, '→', `${gzSize} KB (gz)`);
+          const parts: string[] = [];
+          if ((algorithm === 'gzip' || algorithm === 'both') && fs.existsSync(`${filePath}.gz`)) {
+            const gzSize = (fs.statSync(`${filePath}.gz`).size / 1024).toFixed(2);
+            parts.push(`${gzSize} KB (gz)`);
+          }
+          if ((algorithm === 'brotli' || algorithm === 'both') && fs.existsSync(`${filePath}.br`)) {
+            const brSize = (fs.statSync(`${filePath}.br`).size / 1024).toFixed(2);
+            parts.push(`${brSize} KB (br)`);
+          }
+          logStep('compress', '[SUCCESS]', relPath, '→', parts.join(' | '));
         }
 
         if (deleteOrigin) {

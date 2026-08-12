@@ -93,7 +93,7 @@ export default function devFallbackPlugin(options: DevFallbackOptions = {}): Plu
       // 1. Intercept Proxy Errors if enabled
       if (catchProxyErrors && server.config.server.proxy) {
         server.httpServer?.on('listening', () => {
-          logStep('fallback', 'Dev proxy failure & network fallback interceptor active');
+          logStep('fallback', '[INFO]', 'Dev proxy failure & network fallback interceptor active');
         });
       }
 
@@ -112,7 +112,7 @@ export default function devFallbackPlugin(options: DevFallbackOptions = {}): Plu
           });
 
           if (matchMock) {
-            logStep('mock', reqMethod, reqUrl, '→ 200 OK');
+            logStep('fallback', '[MOCK]', reqMethod, reqUrl, '→ 200 OK');
 
             const sendResponse = () => {
               if (typeof matchMock.response === 'function') {

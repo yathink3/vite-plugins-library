@@ -141,7 +141,7 @@ export default function autoAliasPlugin(options: AutoAliasOptions = {}): Plugin 
         }
       }
 
-      logStep('alias', `Resolved ${resolvedAliases.length} path aliases`);
+      logStep('alias', '[SUCCESS]', `Resolved ${resolvedAliases.length} path aliases`);
 
       config.resolve = config.resolve || {};
 

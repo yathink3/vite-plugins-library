@@ -139,7 +139,7 @@ export default function deadCodeScannerPlugin(options: DeadCodeScannerOptions = 
       }
 
       if (unusedFiles.length > 0) {
-        logStep('dead-code', `Found ${unusedFiles.length} unreferenced static asset(s):`);
+        logStep('dead-code', '[WARNING]', `Found ${unusedFiles.length} unreferenced static asset(s):`);
         for (const file of unusedFiles) {
           logStep('dead-code', '[UNUSED]', file);
         }

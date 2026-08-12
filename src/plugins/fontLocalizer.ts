@@ -93,7 +93,7 @@ export default function fontLocalizerPlugin(options: FontLocalizerOptions = {}):
         return html;
       }
 
-      logStep('fonts', `Found ${matches.length} Google Font link(s) in index.html to localize`);
+      logStep('fonts', '[INFO]', `Found ${matches.length} Google Font link(s) in index.html to localize`);
 
       let updatedHtml = html;
 
