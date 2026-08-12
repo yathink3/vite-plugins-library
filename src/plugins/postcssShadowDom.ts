@@ -3,17 +3,16 @@ import type { Plugin } from 'vite';
 
 export interface PostcssShadowDomOptions {
   themePrefix?: string;
-  targetHost?: boolean;
 }
 
 /**
  * Vite plugin that configures PostCSS to adapt Tailwind CSS & global styles for Shadow DOM / Web Components.
  */
-export default function postcssShadowDomPlugin(options: PostcssShadowDomOptions = {}): Plugin {
+export default function postcssShadowDomTailwindPlugin(options: PostcssShadowDomOptions = {}): Plugin {
   const themePrefix = options.themePrefix || '.theme-';
 
   return {
-    name: 'vite-plugin-postcss-shadow-dom',
+    name: 'postcss-shadow-dom-tailwind-plugin',
     config(config) {
       config.css = config.css || {};
 
