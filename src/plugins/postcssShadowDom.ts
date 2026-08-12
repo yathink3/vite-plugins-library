@@ -4,6 +4,8 @@ import type { Plugin } from 'vite';
 export interface PostcssShadowDomOptions {
   themePrefix?: string;
   targetHost?: boolean;
+  headerComment?: string;
+  removeComments?: boolean;
 }
 
 /**
@@ -11,6 +13,10 @@ export interface PostcssShadowDomOptions {
  */
 export default function postcssShadowDomPlugin(options: PostcssShadowDomOptions = {}): Plugin {
   const themePrefix = options.themePrefix || '.theme-';
+  const removeComments = options.removeComments !== false;
+  const headerComment = options.headerComment !== undefined
+    ? options.headerComment
+    : '! tailwindcss v4.3.0 shadow-dom';
 
   return {
     name: 'vite-plugin-postcss-shadow-dom',
@@ -32,8 +38,6 @@ export default function postcssShadowDomPlugin(options: PostcssShadowDomOptions 
           const hasRoot = cssContent.includes(':root');
           const hasTheme = cssContent.includes(themePrefix);
 
-          if (!hasLayerProps && !hasRoot && !hasTheme) return;
-
           // 1. Target and replace complex nested fallback blocks
           if (hasLayerProps) {
             root.walkAtRules('layer', layerAtRule => {
@@ -54,21 +58,44 @@ export default function postcssShadowDomPlugin(options: PostcssShadowDomOptions 
             });
           }
 
-          // 2. Convert standard :root to :host and scope theme classes
+          // 2. Convert standard :root to :host, scope theme classes, and deduplicate selectors
           if (hasRoot || hasTheme) {
             root.walkRules(rule => {
+              let selectors = rule.selectors;
+
               if (hasRoot && rule.selector.includes(':root')) {
-                rule.selector = rule.selector.replaceAll(':root', ':host');
+                selectors = selectors.map(sel => sel.replaceAll(':root', ':host'));
               }
 
               if (hasTheme && rule.selector.includes(themePrefix)) {
-                rule.selectors = rule.selectors.map(selector => {
+                selectors = selectors.map(selector => {
                   const trimmed = selector.trim();
                   if (trimmed.startsWith(themePrefix)) return `:host(${trimmed})`;
                   return selector;
                 });
               }
+
+              // Deduplicate selectors to avoid generating ":host, :host"
+              const uniqueSelectors = Array.from(new Set(selectors.map(s => s.trim())));
+              rule.selectors = uniqueSelectors;
             });
+          }
+
+          // 3. Remove all existing comments
+          if (removeComments) {
+            root.walkComments(comment => {
+              comment.remove();
+            });
+          }
+
+          // 4. Prepend header comment at beginning of CSS
+          if (headerComment) {
+            let cleanCommentText = headerComment.trim();
+            if (cleanCommentText.startsWith('/*') && cleanCommentText.endsWith('*/')) {
+              cleanCommentText = cleanCommentText.slice(2, -2).trim();
+            }
+            const raws = cleanCommentText.startsWith('!') ? { left: '', right: ' ' } : undefined;
+            root.prepend(postcss.comment({ text: cleanCommentText, raws }));
           }
         },
       });
