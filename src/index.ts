@@ -13,6 +13,9 @@ export type { JsAsJsxOptions } from './plugins/jsAsJsx';
 export { default as postcssShadowDomPlugin, default as postcssShadowDomTailwindPlugin } from './plugins/postcssShadowDom';
 export type { PostcssShadowDomOptions } from './plugins/postcssShadowDom';
 
+export { default as convertCssRootToHostPlugin } from './plugins/convertCssRootToHost';
+export type { ConvertCssRootToHostOptions } from './plugins/convertCssRootToHost';
+
 export { default as publicCssManagePlugin } from './plugins/publicCssManage';
 export type { PublicCssManageOptions } from './plugins/publicCssManage';
 

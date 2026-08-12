@@ -32,6 +32,7 @@ All plugins support both **main library imports** and **tree-shakable subpath im
 | Plugin / Utility | Subpath Import | Description |
 | :--- | :--- | :--- |
 | `postcssShadowDomTailwindPlugin` | `vite-plugins-library/postcss-shadow-dom` | Adapts Tailwind CSS v4+ & global styles for Web Components / Shadow DOM (`:host`). Removes duplicate selectors & appends header comments. |
+| `convertCssRootToHostPlugin` | `vite-plugins-library/convert-css-root-to-host` | Post-transform CSS plugin converting `:root` and Tailwind universal selectors/theme classes to `:host` for Web Components / Shadow DOM. |
 | `proxyRedirectsPlugin` | `vite-plugins-library/proxy-redirects` | Dynamic dev server proxy rewrites & production deployment redirects for Netlify (`_redirects`), Vercel (`vercel.json`), and Nginx (`nginx.conf.snippet`). |
 | `codeSplitPlugin` | `vite-plugins-library/code-split` | Structured Rollup output chunk naming strategy for assets (`a/`), CSS (`c/`), and JS (`j/`). |
 | `autoAliasPlugin` | `vite-plugins-library/auto-alias` | **Unified**: Resolves `tsconfig.json` path mappings, auto-creates `@` subfolder aliases for `src/`, and deduplicates package dependencies. |

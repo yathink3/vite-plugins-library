@@ -1,6 +1,6 @@
 {
   "name": "vite-plugins-library",
-  "version": "1.2.3",
+  "version": "1.2.5",
   "description": "A curated collection of production-ready custom Vite plugins and standalone CLI logger utilities inspired by enterprise Vite configurations.",
   "publishConfig": {
     "access": "public"
@@ -33,6 +33,10 @@
     "./postcss-shadow-dom": {
       "types": "./dist/plugins/postcssShadowDom.d.ts",
       "import": "./dist/plugins/postcssShadowDom.js"
+    },
+    "./convert-css-root-to-host": {
+      "types": "./dist/plugins/convertCssRootToHost.d.ts",
+      "import": "./dist/plugins/convertCssRootToHost.js"
     },
     "./public-css-manage": {
       "types": "./dist/plugins/publicCssManage.d.ts",
