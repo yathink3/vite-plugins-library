@@ -10,7 +10,7 @@ export type { ImageToCdnOptions } from './plugins/imageToCdn';
 export { default as jsAsJsxPlugin } from './plugins/jsAsJsx';
 export type { JsAsJsxOptions } from './plugins/jsAsJsx';
 
-export { default as postcssShadowDomPlugin } from './plugins/postcssShadowDom';
+export { default as postcssShadowDomPlugin, default as postcssShadowDomTailwindPlugin } from './plugins/postcssShadowDom';
 export type { PostcssShadowDomOptions } from './plugins/postcssShadowDom';
 
 export { default as publicCssManagePlugin } from './plugins/publicCssManage';
