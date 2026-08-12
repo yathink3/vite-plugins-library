@@ -164,6 +164,7 @@ export default function codeSplitPlugin(options: CodeSplitPluginOptions = {}): P
         outputObj.chunkFileNames = sharedChunkFileNames;
         if (groups.length > 0) {
           outputObj.codeSplitting = sharedCodeSplitting;
+          delete outputObj.manualChunks;
         }
       };
 
@@ -177,6 +178,19 @@ export default function codeSplitPlugin(options: CodeSplitPluginOptions = {}): P
         rolldownOutput.forEach(applyRolldownOutputs);
       } else {
         applyRolldownOutputs(rolldownOutput);
+      }
+    },
+    configResolved(config) {
+      const buildConfig = config.build as any;
+      if (buildConfig?.rolldownOptions?.output) {
+        const outputs = Array.isArray(buildConfig.rolldownOptions.output)
+          ? buildConfig.rolldownOptions.output
+          : [buildConfig.rolldownOptions.output];
+        for (const out of outputs) {
+          if (out && out.codeSplitting) {
+            delete out.manualChunks;
+          }
+        }
       }
     },
   };
