@@ -37,21 +37,6 @@ export interface CompressionPluginOptions {
 
 const DEFAULT_EXTENSIONS = ['.js', '.css', '.html', '.svg', '.json', '.txt'];
 
-function getFiles(dir: string, fileList: string[] = []): string[] {
-  if (!fs.existsSync(dir)) return fileList;
-  const files = fs.readdirSync(dir);
-  for (const file of files) {
-    const filePath = path.join(dir, file);
-    const stat = fs.statSync(filePath);
-    if (stat.isDirectory()) {
-      getFiles(filePath, fileList);
-    } else {
-      fileList.push(filePath);
-    }
-  }
-  return fileList;
-}
-
 /**
  * Vite plugin for zero-dependency static Gzip and Brotli asset pre-compression using Node's native `zlib` module during production build.
  *
@@ -75,15 +60,18 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
     configResolved(config) {
       viteConfig = config;
     },
-    async closeBundle() {
+    async writeBundle(outputOptions, bundle) {
       if (!viteConfig) return;
-      const outDir = path.resolve(viteConfig.root || process.cwd(), viteConfig.build.outDir || 'dist');
-      const files = getFiles(outDir);
+      const outDir = outputOptions.dir || path.resolve(viteConfig.root || process.cwd(), viteConfig.build.outDir || 'dist');
 
       let compressedCount = 0;
 
-      for (const filePath of files) {
+      for (const fileName of Object.keys(bundle)) {
+        const filePath = path.resolve(outDir, fileName);
+        
+        if (!fs.existsSync(filePath)) continue;
         if (filePath.endsWith('.gz') || filePath.endsWith('.br')) continue;
+        
         const ext = path.extname(filePath).toLowerCase();
         if (!extensions.includes(ext)) continue;
 
@@ -108,7 +96,6 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
 
         compressedCount++;
         if (verbose) {
-          const relPath = path.relative(outDir, filePath);
           const parts: string[] = [];
           if ((algorithm === 'gzip' || algorithm === 'both') && fs.existsSync(`${filePath}.gz`)) {
             const gzSize = (fs.statSync(`${filePath}.gz`).size / 1024).toFixed(2);
@@ -118,7 +105,7 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
             const brSize = (fs.statSync(`${filePath}.br`).size / 1024).toFixed(2);
             parts.push(`${brSize} KB (br)`);
           }
-          logStep('compress', '[SUCCESS]', relPath, '→', parts.join(' | '));
+          logStep('compress', '[SUCCESS]', fileName, '→', parts.join(' | '));
         }
 
         if (deleteOrigin) {
