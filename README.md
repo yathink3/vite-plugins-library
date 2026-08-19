@@ -47,7 +47,6 @@ All plugins support both **main library imports** and **tree-shakable subpath im
 | `customConfigPlugin` | `vite-plugins-library/custom-config` | *(Wrapper)* Path alias & React deduplication wrapper delegating to `autoAliasPlugin`. |
 | `envLoaderPlugin` | `vite-plugins-library/env-loader` | *(Wrapper)* Environment variable loader wrapper delegating to `envValidatorPlugin`. |
 | `apiMockPlugin` | `vite-plugins-library/api-mock` | *(Wrapper)* Dev server API mock middleware wrapper delegating to `devFallbackPlugin`. |
-| `logger` | `vite-plugins-library/logger` | Colored ANSI CLI logging system with boxed notifications (`logBox`) and step indicators (`logStep`). |
 
 ---
 
@@ -59,7 +58,7 @@ Adapts global CSS and Tailwind CSS v4+ rules for Web Components / Shadow DOM by 
 
 ```ts
 import { defineConfig } from 'vite';
-import { postcssShadowDomTailwindPlugin } from 'vite-plugins-library/postcss-shadow-dom';
+import postcssShadowDomTailwindPlugin from 'vite-plugins-library/postcss-shadow-dom';
 
 export default defineConfig({
   plugins: [
@@ -78,7 +77,7 @@ Generates dynamic dev proxy rules and exports deployment redirect configurations
 
 ```ts
 import { defineConfig } from 'vite';
-import { proxyRedirectsPlugin } from 'vite-plugins-library/proxy-redirects';
+import proxyRedirectsPlugin from 'vite-plugins-library/proxy-redirects';
 
 export default defineConfig({
   plugins: [
@@ -104,7 +103,7 @@ Organizes compiled production build assets into custom subdirectories (`jsDir`, 
 
 ```ts
 import { defineConfig } from 'vite';
-import { codeSplitPlugin } from 'vite-plugins-library/code-split';
+import codeSplitPlugin from 'vite-plugins-library/code-split';
 
 export default defineConfig({
   plugins: [
@@ -129,7 +128,7 @@ Allows writing JSX inside standard `.js` and `.ts` files without renaming them t
 
 ```ts
 import { defineConfig } from 'vite';
-import { jsAsJsxPlugin } from 'vite-plugins-library/js-as-jsx';
+import jsAsJsxPlugin from 'vite-plugins-library/js-as-jsx';
 
 export default defineConfig({
   plugins: [
@@ -146,7 +145,7 @@ Automatically rewrites local image asset imports to your production CDN URL.
 
 ```ts
 import { defineConfig } from 'vite';
-import { imageToCdnPlugin } from 'vite-plugins-library/image-to-cdn';
+import imageToCdnPlugin from 'vite-plugins-library/image-to-cdn';
 
 export default defineConfig({
   plugins: [
@@ -166,7 +165,7 @@ Manages path resolution for public CSS assets during dev mode and minifies them 
 
 ```ts
 import { defineConfig } from 'vite';
-import { publicCssManagePlugin } from 'vite-plugins-library/public-css-manage';
+import publicCssManagePlugin from 'vite-plugins-library/public-css-manage';
 
 export default defineConfig({
   plugins: [
@@ -186,7 +185,7 @@ Injects variables matching specified prefixes into `process.env`.
 
 ```ts
 import { defineConfig } from 'vite';
-import { envLoaderPlugin } from 'vite-plugins-library/env-loader';
+import envLoaderPlugin from 'vite-plugins-library/env-loader';
 
 export default defineConfig({
   plugins: [
@@ -205,7 +204,7 @@ Auto-configures path aliases (`@` -> `./src`) and deduplicates React dependencie
 
 ```ts
 import { defineConfig } from 'vite';
-import { customConfigPlugin } from 'vite-plugins-library/custom-config';
+import customConfigPlugin from 'vite-plugins-library/custom-config';
 
 export default defineConfig({
   plugins: [
@@ -224,7 +223,7 @@ Suppresses annoying or non-critical build warning codes from terminal output.
 
 ```ts
 import { defineConfig } from 'vite';
-import { buildLogModifierPlugin } from 'vite-plugins-library/build-log-modifier';
+import buildLogModifierPlugin from 'vite-plugins-library/build-log-modifier';
 
 export default defineConfig({
   plugins: [
@@ -237,35 +236,13 @@ export default defineConfig({
 
 ---
 
-### 10. Standalone CLI Logger Utility
-
-A lightweight, zero-dependency ANSI logger with boxed announcements and step progress logging.
-
-```ts
-import { logger } from 'vite-plugins-library/logger';
-
-// Standard levels
-logger.info('Dev server starting...');
-logger.success('Build completed successfully!');
-logger.warn('Deprecation warning detected');
-logger.error('Build step failed');
-
-// Boxed notification
-logger.box('DEPRECATION NOTICE', 'Vite CJS mode is deprecated. Use ESM mode.');
-
-// Step progress indicator
-logger.step('rewrite', '/api/*', '→', 'https://api.example.com/api/*');
-```
-
----
-
-### 11. Environment Variable Validator Plugin
+### 10. Environment Variable Validator Plugin
 
 Validates `.env` variables against a schema at build/dev start. Prevents deploying broken apps with missing keys.
 
 ```ts
 import { defineConfig } from 'vite';
-import { envValidatorPlugin } from 'vite-plugins-library/env-validator';
+import envValidatorPlugin from 'vite-plugins-library/env-validator';
 
 export default defineConfig({
   plugins: [
@@ -282,13 +259,13 @@ export default defineConfig({
 
 ---
 
-### 12. Asset Pre-Compression Plugin
+### 11. Asset Pre-Compression Plugin
 
 Pre-compresses build assets into `.gz` (Gzip) and `.br` (Brotli) files during production build using Node's native `zlib` module.
 
 ```ts
 import { defineConfig } from 'vite';
-import { compressionPlugin } from 'vite-plugins-library/compression';
+import compressionPlugin from 'vite-plugins-library/compression';
 
 export default defineConfig({
   plugins: [
@@ -302,13 +279,13 @@ export default defineConfig({
 
 ---
 
-### 13. Dynamic HTML & SEO Meta Plugin
+### 12. Dynamic HTML & SEO Meta Plugin
 
 Injects dynamic SEO meta tags, OpenGraph data, Twitter cards, theme colors, and favicons into `index.html`.
 
 ```ts
 import { defineConfig } from 'vite';
-import { htmlMetaPlugin } from 'vite-plugins-library/html-meta';
+import htmlMetaPlugin from 'vite-plugins-library/html-meta';
 
 export default defineConfig({
   plugins: [
@@ -333,13 +310,13 @@ export default defineConfig({
 
 ---
 
-### 14. Development API Mock Middleware Plugin
+### 13. Development API Mock Middleware Plugin
 
 Injects dev server middleware to intercept local API calls (e.g. `/api/*`) and serve mock JSON data with simulated latency.
 
 ```ts
 import { defineConfig } from 'vite';
-import { apiMockPlugin } from 'vite-plugins-library/api-mock';
+import apiMockPlugin from 'vite-plugins-library/api-mock';
 
 export default defineConfig({
   plugins: [
@@ -365,13 +342,13 @@ export default defineConfig({
 
 ---
 
-### 15. Unified Project Build Quality Scorer & Performance Auditor Plugin
+### 14. Unified Project Build Quality Scorer & Performance Auditor Plugin
 
 Combines production build quality scoring, letter grades (`A+`, `A`, `B`, `C`, `F`), bundle size budget audits, and transform performance bottleneck profiling into a single unified build auditor.
 
 ```ts
 import { defineConfig } from 'vite';
-import { buildScorerPlugin } from 'vite-plugins-library/build-scorer';
+import buildScorerPlugin from 'vite-plugins-library/build-scorer';
 
 export default defineConfig({
   plugins: [
@@ -389,13 +366,13 @@ export default defineConfig({
 
 ---
 
-### 16. Automatic Path Alias Resolver Plugin
+### 15. Automatic Path Alias Resolver Plugin
 
 Automatically resolves path aliases from `tsconfig.json`/`jsconfig.json` `compilerOptions.paths` and auto-maps top-level directories under `src/` (e.g. `@components`, `@hooks`, `@services`, `@assets`).
 
 ```ts
 import { defineConfig } from 'vite';
-import { autoAliasPlugin } from 'vite-plugins-library/auto-alias';
+import autoAliasPlugin from 'vite-plugins-library/auto-alias';
 
 export default defineConfig({
   plugins: [
@@ -409,13 +386,13 @@ export default defineConfig({
 
 ---
 
-### 17. Dead Code & Unused Asset Scanner Plugin
+### 16. Dead Code & Unused Asset Scanner Plugin
 
 Audits static asset files in `public/` and `src/assets/` against the Vite module build graph to detect unreferenced images, SVGs, or font files.
 
 ```ts
 import { defineConfig } from 'vite';
-import { deadCodeScannerPlugin } from 'vite-plugins-library/dead-code-scanner';
+import deadCodeScannerPlugin from 'vite-plugins-library/dead-code-scanner';
 
 export default defineConfig({
   plugins: [
@@ -430,13 +407,13 @@ export default defineConfig({
 
 ---
 
-### 18. Google Web Font Localizer & Downloader Plugin
+### 17. Google Web Font Localizer & Downloader Plugin
 
 Scans `index.html` for Google Fonts CDN links, downloads `.woff2` font files locally during build/dev into public assets, and rewrites HTML to serve self-hosted fonts without GDPR privacy concerns or network latency.
 
 ```ts
 import { defineConfig } from 'vite';
-import { fontLocalizerPlugin } from 'vite-plugins-library/font-localizer';
+import fontLocalizerPlugin from 'vite-plugins-library/font-localizer';
 
 export default defineConfig({
   plugins: [
@@ -450,13 +427,13 @@ export default defineConfig({
 
 ---
 
-### 19. Dev Server Proxy & Route Fallback Recovery Plugin
+### 18. Dev Server Proxy & Route Fallback Recovery Plugin
 
 Intercepts dev server proxy errors (502/503/504 connection failures) and missing SPA client routes to return configurable mock fallbacks or custom HTML error pages.
 
 ```ts
 import { defineConfig } from 'vite';
-import { devFallbackPlugin } from 'vite-plugins-library/dev-fallback';
+import devFallbackPlugin from 'vite-plugins-library/dev-fallback';
 
 export default defineConfig({
   plugins: [
@@ -475,13 +452,13 @@ export default defineConfig({
 
 ---
 
-### 20. Open Source License & Compliance Auditor Plugin
+### 19. Open Source License & Compliance Auditor Plugin
 
 Audits imported `node_modules` dependencies during production builds and generates open-source attribution notices (`THIRD_PARTY_LICENSES.md` or `licenses.json`) in `dist/`.
 
 ```ts
 import { defineConfig } from 'vite';
-import { licenseNoticePlugin } from 'vite-plugins-library/license-notice';
+import licenseNoticePlugin from 'vite-plugins-library/license-notice';
 
 export default defineConfig({
   plugins: [
@@ -495,13 +472,13 @@ export default defineConfig({
 
 ---
 
-### 21. HTTP Security Headers & Host Config Exporter Plugin
+### 20. HTTP Security Headers & Host Config Exporter Plugin
 
 Enforces security headers (Content-Security-Policy, Cross-Origin-Opener-Policy for `SharedArrayBuffer`, X-Frame-Options, HSTS) during dev and preview modes, and exports production header configuration files (`_headers` for Cloudflare/Netlify, `vercel.json` headers array, `nginx-security.conf`) during build.
 
 ```ts
 import { defineConfig } from 'vite';
-import { securityHeadersPlugin } from 'vite-plugins-library/security-headers';
+import securityHeadersPlugin from 'vite-plugins-library/security-headers';
 
 export default defineConfig({
   plugins: [
@@ -520,13 +497,13 @@ export default defineConfig({
 
 ---
 
-### 22. Dynamic Bundle Banner & Notice Inserter Plugin
+### 21. Dynamic Bundle Banner & Notice Inserter Plugin
 
 Prepends customizable build banners, copyright statements, license text, git commit hashes, and build timestamps to generated JS and CSS output chunks without breaking source maps.
 
 ```ts
 import { defineConfig } from 'vite';
-import { bannerNoticePlugin } from 'vite-plugins-library/banner-notice';
+import bannerNoticePlugin from 'vite-plugins-library/banner-notice';
 
 export default defineConfig({
   plugins: [
@@ -540,13 +517,13 @@ export default defineConfig({
 
 ---
 
-### 23. SVG Sprite Sheet Generator & Virtual Module Plugin
+### 22. SVG Sprite Sheet Generator & Virtual Module Plugin
 
 Combines individual `.svg` icon files into a single `<symbol>` SVG sprite sheet (`assets/sprite.svg`), offering virtual module imports (`virtual:svg-sprite`) and automatic HTML body injection.
 
 ```ts
 import { defineConfig } from 'vite';
-import { svgSpritePlugin } from 'vite-plugins-library/svg-sprite';
+import svgSpritePlugin from 'vite-plugins-library/svg-sprite';
 
 export default defineConfig({
   plugins: [
@@ -561,13 +538,13 @@ export default defineConfig({
 
 ---
 
-### 24. Core Web Vitals Resource Hints & Asset Preloader Plugin
+### 23. Core Web Vitals Resource Hints & Asset Preloader Plugin
 
 Boosts Largest Contentful Paint (LCP) and loading speed by automatically parsing production Rollup assets and injecting `<link rel="modulepreload">`, `<link rel="preload" as="font">`, `<link rel="preload" as="style">`, `preconnect`, and `dns-prefetch` into HTML `<head>`.
 
 ```ts
 import { defineConfig } from 'vite';
-import { resourceHintsPlugin } from 'vite-plugins-library/resource-hints';
+import resourceHintsPlugin from 'vite-plugins-library/resource-hints';
 
 export default defineConfig({
   plugins: [
@@ -584,13 +561,13 @@ export default defineConfig({
 
 ---
 
-### 25. Automatic Vite Dependency Cache Purger Plugin
+### 24. Automatic Vite Dependency Cache Purger Plugin
 
 Fixes Vite's most frequent dev server pain point ("Failed to resolve import") by computing checksums of `package.json` and lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`) and automatically clearing `node_modules/.vite` whenever dependencies change.
 
 ```ts
 import { defineConfig } from 'vite';
-import { cacheCleanerPlugin } from 'vite-plugins-library/cache-cleaner';
+import cacheCleanerPlugin from 'vite-plugins-library/cache-cleaner';
 
 export default defineConfig({
   plugins: [
