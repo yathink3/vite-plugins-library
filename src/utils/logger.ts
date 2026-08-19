@@ -17,6 +17,8 @@ export const colors = {
   white: (s: string) => `\x1b[37m${s}\x1b[0m`,
 };
 
+let lastContext = '';
+
 /**
  * Output a boxed notification message with status icons and ANSI colors to terminal.
  *
@@ -24,6 +26,11 @@ export const colors = {
  * @param type - Log type identifier determining color and symbol.
  */
 export function logBox(msg: string, type: LogType = 'info'): void {
+  if (lastContext && lastContext !== '__box__') {
+    console.log(); // Gap before a box if preceded by steps
+  }
+  lastContext = '__box__';
+
   const colorMap: Record<LogType, (s: string) => string> = {
     info: colors.cyan,
     success: colors.green,
@@ -48,6 +55,14 @@ export function logBox(msg: string, type: LogType = 'info'): void {
  * @param parts - Variadic array of string components forming the step output.
  */
 export function logStep(...parts: string[]): void {
+  if (parts.length > 0) {
+    const currentContext = parts[0];
+    if (lastContext && lastContext !== currentContext) {
+      console.log(); // Gap between different plugins
+    }
+    lastContext = currentContext;
+  }
+
   const palette = [
     colors.gray,
     colors.white,
