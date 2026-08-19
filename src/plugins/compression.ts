@@ -53,6 +53,7 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
   const verbose = options.verbose !== false;
 
   let viteConfig: ResolvedConfig | undefined;
+  let filesToCompress: { outDir: string; fileName: string }[] = [];
 
   return {
     name: 'vite-plugin-compression',
@@ -60,13 +61,22 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
     configResolved(config) {
       viteConfig = config;
     },
-    async writeBundle(outputOptions, bundle) {
+    writeBundle(outputOptions, bundle) {
       if (!viteConfig) return;
       const outDir = outputOptions.dir || path.resolve(viteConfig.root || process.cwd(), viteConfig.build.outDir || 'dist');
+      for (const fileName of Object.keys(bundle)) {
+        filesToCompress.push({ outDir, fileName });
+      }
+    },
+    async closeBundle() {
+      if (!viteConfig || filesToCompress.length === 0) return;
 
       let compressedCount = 0;
+      
+      const currentFiles = [...filesToCompress];
+      filesToCompress = [];
 
-      for (const fileName of Object.keys(bundle)) {
+      for (const { outDir, fileName } of currentFiles) {
         const filePath = path.resolve(outDir, fileName);
         
         if (!fs.existsSync(filePath)) continue;
