@@ -17,6 +17,7 @@ export default defineConfig({
         'plugins/compression': resolve(__dirname, 'src/plugins/compression.ts'),
         'plugins/convertCssRootToHost': resolve(__dirname, 'src/plugins/convertCssRootToHost.ts'),
         'plugins/customConfig': resolve(__dirname, 'src/plugins/customConfig.ts'),
+        'plugins/legacyConfig': resolve(__dirname, 'src/plugins/legacyConfig.ts'),
         'plugins/deadCodeScanner': resolve(__dirname, 'src/plugins/deadCodeScanner.ts'),
         'plugins/devFallback': resolve(__dirname, 'src/plugins/devFallback.ts'),
         'plugins/envLoader': resolve(__dirname, 'src/plugins/envLoader.ts'),

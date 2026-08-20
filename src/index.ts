@@ -25,6 +25,8 @@ export type { BuildLogModifierOptions } from './plugins/buildLogModifier';
 export { default as customConfigPlugin } from './plugins/customConfig';
 export type { CustomConfigOptions } from './plugins/customConfig';
 
+export { default as legacyConfigPlugin } from './plugins/legacyConfig';
+
 export { default as proxyRedirectsPlugin } from './plugins/proxyRedirects';
 export type { ProxyRedirectsOptions, DeployPlatform } from './plugins/proxyRedirects';
 
