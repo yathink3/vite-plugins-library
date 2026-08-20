@@ -73,6 +73,7 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
   return {
     name: 'vite-plugin-compression',
     apply: 'build',
+    enforce: 'post',
     configResolved(config) {
       viteConfig = config;
     },
