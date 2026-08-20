@@ -76,6 +76,16 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
     enforce: 'post',
     configResolved(config) {
       viteConfig = config;
+      
+      // Force this plugin to be the absolute last in the execution order.
+      // This ensures it runs after plugins like `vite-plugin-pwa` which might 
+      // rely on the original `.js` files being present during their `closeBundle` hooks.
+      const plugins = (config.plugins as any[]) || [];
+      const index = plugins.findIndex(p => p && p.name === 'vite-plugin-compression');
+      if (index !== -1 && index < plugins.length - 1) {
+        const [self] = plugins.splice(index, 1);
+        plugins.push(self);
+      }
     },
     writeBundle(outputOptions, bundle) {
       if (!viteConfig) return;
@@ -149,8 +159,16 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
           }
         }
 
-        if (deleteOrigin) {
-          await fs.promises.unlink(filePath);
+        if (deleteOrigin && ext !== '.html') {
+          process.on('exit', () => {
+            try {
+              if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+              }
+            } catch (e) {
+              // Ignore cleanup errors on exit
+            }
+          });
         }
 
         return { fileName, gzSize, brSize };
