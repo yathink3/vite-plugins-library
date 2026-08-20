@@ -47,6 +47,7 @@ All plugins support both **main library imports** and **tree-shakable subpath im
 | `customConfigPlugin` | `vite-plugins-library/custom-config` | *(Wrapper)* Path alias & React deduplication wrapper delegating to `autoAliasPlugin`. |
 | `envLoaderPlugin` | `vite-plugins-library/env-loader` | *(Wrapper)* Environment variable loader wrapper delegating to `envValidatorPlugin`. |
 | `apiMockPlugin` | `vite-plugins-library/api-mock` | *(Wrapper)* Dev server API mock middleware wrapper delegating to `devFallbackPlugin`. |
+| `legacyConfigPlugin` | `vite-plugins-library/legacy-config` | Automatically injects known backwards-compatibility flags into Vite's legacy config (e.g., CJS interop, SSR heuristics). |
 
 ---
 
@@ -573,6 +574,26 @@ export default defineConfig({
   plugins: [
     cacheCleanerPlugin({
       verbose: true, // Logs CLI notice when stale dependency cache is purged
+    }),
+  ],
+});
+```
+
+---
+
+### 25. Legacy Configuration Interop Plugin
+
+Automatically applies known legacy configuration options (such as Vite 8's `inconsistentCjsInterop` or Vite 5/6 SSR fallback heuristics) by default to help maintain backwards compatibility and prevent silent breaks during Vite version upgrades.
+
+```ts
+import { defineConfig } from 'vite';
+import legacyConfigPlugin from 'vite-plugins-library/legacy-config';
+
+export default defineConfig({
+  plugins: [
+    legacyConfigPlugin({
+      // Optional: Pass any overrides to the default fallback flags if needed
+      // inconsistentCjsInterop: false, 
     }),
   ],
 });
