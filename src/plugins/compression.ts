@@ -2,7 +2,22 @@ import fs from 'fs';
 import path from 'path';
 import zlib from 'zlib';
 import type { Plugin, ResolvedConfig } from 'vite';
-import { logBox, logStep } from '../utils/logger';
+import { logBox, logGrid, colors, createSpinner } from '../utils/logger';
+const gzipAsync = (content: Buffer | string, options: zlib.ZlibOptions): Promise<Buffer> =>
+  new Promise((resolve, reject) => {
+    zlib.gzip(content, options, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+
+const brotliCompressAsync = (content: Buffer | string, options: zlib.BrotliOptions): Promise<Buffer> =>
+  new Promise((resolve, reject) => {
+    zlib.brotliCompress(content, options, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
 
 /**
  * Options for the compressionPlugin.
@@ -72,55 +87,99 @@ export default function compressionPlugin(options: CompressionPluginOptions = {}
       if (!viteConfig || filesToCompress.length === 0) return;
 
       let compressedCount = 0;
-      
+
       const currentFiles = [...filesToCompress];
       filesToCompress = [];
 
-      for (const { outDir, fileName } of currentFiles) {
+      interface CompressResult {
+        fileName: string;
+        gzSize?: string;
+        brSize?: string;
+      }
+      let spinner: ReturnType<typeof createSpinner> | null = null;
+      if (verbose) {
+        spinner = createSpinner(`Compressing assets with ${algorithm.toUpperCase()}`);
+        spinner.start();
+      }
+
+      const compressTasks = currentFiles.map(async ({ outDir, fileName }) => {
         const filePath = path.resolve(outDir, fileName);
-        
-        if (!fs.existsSync(filePath)) continue;
-        if (filePath.endsWith('.gz') || filePath.endsWith('.br')) continue;
-        
+
+        if (!fs.existsSync(filePath)) return null;
+        if (filePath.endsWith('.gz') || filePath.endsWith('.br')) return null;
+
         const ext = path.extname(filePath).toLowerCase();
-        if (!extensions.includes(ext)) continue;
+        if (!extensions.includes(ext)) return null;
 
-        const stat = fs.statSync(filePath);
-        if (stat.size < threshold) continue;
+        const stat = await fs.promises.stat(filePath);
+        if (stat.size < threshold) return null;
 
-        const content = fs.readFileSync(filePath);
+        if (spinner) spinner.update(`Compressing ${fileName}`);
+
+        const content = await fs.promises.readFile(filePath);
+        const tasks: Promise<void>[] = [];
 
         if (algorithm === 'gzip' || algorithm === 'both') {
-          const gzipped = zlib.gzipSync(content, { level: zlib.constants.Z_BEST_COMPRESSION });
-          fs.writeFileSync(`${filePath}.gz`, gzipped);
+          tasks.push(
+            gzipAsync(content, { level: zlib.constants.Z_BEST_COMPRESSION })
+              .then(gzipped => fs.promises.writeFile(`${filePath}.gz`, gzipped))
+          );
         }
 
         if (algorithm === 'brotli' || algorithm === 'both') {
-          const brotlied = zlib.brotliCompressSync(content, {
-            params: {
-              [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY,
-            },
-          });
-          fs.writeFileSync(`${filePath}.br`, brotlied);
+          tasks.push(
+            brotliCompressAsync(content, {
+              params: {
+                [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY,
+              },
+            }).then(brotlied => fs.promises.writeFile(`${filePath}.br`, brotlied))
+          );
         }
 
-        compressedCount++;
+        await Promise.all(tasks);
+
+        let gzSize, brSize;
         if (verbose) {
-          const parts: string[] = [];
           if ((algorithm === 'gzip' || algorithm === 'both') && fs.existsSync(`${filePath}.gz`)) {
-            const gzSize = (fs.statSync(`${filePath}.gz`).size / 1024).toFixed(2);
-            parts.push(`${gzSize} KB (gz)`);
+            gzSize = (fs.statSync(`${filePath}.gz`).size / 1024).toFixed(2);
           }
           if ((algorithm === 'brotli' || algorithm === 'both') && fs.existsSync(`${filePath}.br`)) {
-            const brSize = (fs.statSync(`${filePath}.br`).size / 1024).toFixed(2);
-            parts.push(`${brSize} KB (br)`);
+            brSize = (fs.statSync(`${filePath}.br`).size / 1024).toFixed(2);
           }
-          logStep('compress', '[SUCCESS]', fileName, '→', parts.join(' | '));
         }
 
         if (deleteOrigin) {
-          fs.unlinkSync(filePath);
+          await fs.promises.unlink(filePath);
         }
+
+        return { fileName, gzSize, brSize };
+      });
+
+      const rawResults = await Promise.all(compressTasks);
+
+      if (spinner) spinner.stop();
+
+      const results: CompressResult[] = rawResults.filter(r => r !== null && (!!r.gzSize || !!r.brSize)) as CompressResult[];
+      compressedCount = rawResults.filter(r => r !== null).length;
+
+      if (verbose && results.length > 0) {
+        const rows: string[][] = [];
+        const hasGz = algorithm === 'gzip' || algorithm === 'both';
+        const hasBr = algorithm === 'brotli' || algorithm === 'both';
+
+        for (const r of results) {
+          const row = [r.fileName, '→'];
+          if (hasGz) row.push(r.gzSize ? `${r.gzSize} KB (gz)` : '');
+          if (hasGz && hasBr) row.push(r.gzSize && r.brSize ? '|' : '');
+          if (hasBr) row.push(r.brSize ? `${r.brSize} KB (br)` : '');
+          rows.push(row);
+        }
+
+        const align: ('left' | 'right')[] = ['left', 'left'];
+        if (hasGz) align.push('right');
+        if (hasGz && hasBr) align.push('left');
+        if (hasBr) align.push('right');
+        logGrid('compress', rows, align);
       }
 
       if (compressedCount > 0 && verbose) {
