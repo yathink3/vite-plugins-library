@@ -46,6 +46,10 @@ export interface CodeSplitPluginOptions {
    */
   maxJsChunkNameLength?: number;
   /**
+   * Custom output name or function for CSS files to bypass default chunk hashing.
+   */
+  cssFileName?: string | ((assetInfo: any) => string);
+  /**
    * Custom code splitting groups passed as prop to group node_modules or source modules into specific named chunks.
    */
   groups?: CodeSplitGroup[];
@@ -97,6 +101,11 @@ export default function codeSplitPlugin(options: CodeSplitPluginOptions = {}): P
       return `${assetDir}/${chunkName}[extname]`;
     }
     if (ext === 'css') {
+      if (options.cssFileName) {
+        return typeof options.cssFileName === 'function'
+          ? options.cssFileName(assetInfo)
+          : options.cssFileName;
+      }
       if (!name) return `${cssDir}/[hash][extname]`;
       const chunkName = name.slice(0, maxJsLen).toLowerCase();
       return `${cssDir}/${chunkName}-[hash][extname]`;
@@ -136,7 +145,6 @@ export default function codeSplitPlugin(options: CodeSplitPluginOptions = {}): P
       const rollupOutput = buildConfig.rollupOptions.output;
 
       const applyRollupOutputs = (outputObj: any) => {
-        if (['iife', 'umd'].includes(outputObj?.format)) return;
         if (!outputObj.assetFileNames) outputObj.assetFileNames = sharedAssetFileNames;
         if (!outputObj.chunkFileNames) outputObj.chunkFileNames = sharedChunkFileNames;
         if (groups.length > 0 && !outputObj.manualChunks) {
@@ -161,9 +169,8 @@ export default function codeSplitPlugin(options: CodeSplitPluginOptions = {}): P
       const rolldownOutput = buildConfig.rolldownOptions.output;
 
       const applyRolldownOutputs = (outputObj: any) => {
-        if (['iife', 'umd'].includes(outputObj?.format)) return;
-        outputObj.assetFileNames = sharedAssetFileNames;
-        outputObj.chunkFileNames = sharedChunkFileNames;
+        if (!outputObj.assetFileNames) outputObj.assetFileNames = sharedAssetFileNames;
+        if (!outputObj.chunkFileNames) outputObj.chunkFileNames = sharedChunkFileNames;
         if (groups.length > 0) {
           outputObj.codeSplitting = sharedCodeSplitting;
           delete outputObj.manualChunks;
