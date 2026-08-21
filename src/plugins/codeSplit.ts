@@ -136,6 +136,7 @@ export default function codeSplitPlugin(options: CodeSplitPluginOptions = {}): P
       const rollupOutput = buildConfig.rollupOptions.output;
 
       const applyRollupOutputs = (outputObj: any) => {
+        if (['iife', 'umd'].includes(outputObj?.format)) return;
         if (!outputObj.assetFileNames) outputObj.assetFileNames = sharedAssetFileNames;
         if (!outputObj.chunkFileNames) outputObj.chunkFileNames = sharedChunkFileNames;
         if (groups.length > 0 && !outputObj.manualChunks) {
@@ -160,6 +161,7 @@ export default function codeSplitPlugin(options: CodeSplitPluginOptions = {}): P
       const rolldownOutput = buildConfig.rolldownOptions.output;
 
       const applyRolldownOutputs = (outputObj: any) => {
+        if (['iife', 'umd'].includes(outputObj?.format)) return;
         outputObj.assetFileNames = sharedAssetFileNames;
         outputObj.chunkFileNames = sharedChunkFileNames;
         if (groups.length > 0) {
