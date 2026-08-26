@@ -47,6 +47,7 @@ export default function publicCssManagePlugin(options: PublicCssManageOptions | 
   let viteConfig: ResolvedConfig | undefined;
   const escapedFolders = folders.map(f => f.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')).join('|');
   const assetPattern = new RegExp(`(href|src)="\\/(${escapedFolders})\\/(?![^"]+\\.min\\.css)([^"]+)"`, 'g');
+  const publicPrefixPattern = new RegExp(`(href|src)="(?:\/)?public\\/(${escapedFolders})\\/([^"]+)"`, 'g');
 
   return {
     name: 'vite-plugin-public-css-manage',
@@ -57,7 +58,7 @@ export default function publicCssManagePlugin(options: PublicCssManageOptions | 
         const logger = createLogger();
         const originalWarn = logger.warn;
         logger.warn = (msg, options) => {
-          if (patternMatched && msg.includes('Files in the public directory are served at the root path')) return;
+          if (msg.includes('Files in the public directory are served at the root path')) return;
           originalWarn(msg, options);
         };
         return { customLogger: logger };
@@ -67,10 +68,7 @@ export default function publicCssManagePlugin(options: PublicCssManageOptions | 
       viteConfig = resolvedConfig;
     },
     transformIndexHtml(html) {
-      if (!isDevMode || (viteConfig as any)?.experimental?.bundledDev) return html;
-      const transformedHtml = html.replace(assetPattern, '$1="public/$2/$3"');
-      if (transformedHtml !== html) patternMatched = true;
-      return transformedHtml;
+      return html.replace(publicPrefixPattern, '$1="/$2/$3"');
     },
     async closeBundle() {
       if (isDevMode || !shouldMinify || !viteConfig) return;
