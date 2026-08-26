@@ -46,6 +46,28 @@ function stripJsonComments(jsonString: string): string {
     .replace(/\/\/.*/g, '');
 }
 
+function escapeRegex(str: string): string {
+  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+function createExactAlias(findStr: string, replacementPath: string): Alias[] {
+  const cleanFind = findStr.replace(/\/\*$/, '').replace(/\/+$/, '');
+  const cleanReplacement = replacementPath.replace(/\/\*$/, '').replace(/\/+$/, '');
+  
+  if (cleanFind === '@') {
+    return [
+      { find: /^@\/(.*)$/, replacement: `${cleanReplacement}/$1` },
+      { find: /^@$/, replacement: cleanReplacement },
+    ];
+  }
+  
+  const escaped = escapeRegex(cleanFind);
+  return [
+    { find: new RegExp(`^${escaped}\\/(.*)$`), replacement: `${cleanReplacement}/$1` },
+    { find: new RegExp(`^${escaped}$`), replacement: cleanReplacement },
+  ];
+}
+
 /**
  * Vite plugin that automatically resolves path aliases from `tsconfig.json` or `jsconfig.json`
  * and maps subdirectories inside `src/` to `@` path aliases.
@@ -66,10 +88,20 @@ export default function autoAliasPlugin(options: AutoAliasOptions = {}): Plugin 
       const root = config.root ? path.resolve(config.root) : process.cwd();
       const resolvedAliases: Alias[] = [];
 
+      const addAlias = (find: string, replacement: string) => {
+        const absReplacement = path.isAbsolute(replacement) ? replacement : path.resolve(root, replacement);
+        const aliases = createExactAlias(find, absReplacement);
+        for (const alias of aliases) {
+          const findPattern = alias.find.toString();
+          if (!resolvedAliases.some(a => a.find.toString() === findPattern)) {
+            resolvedAliases.push(alias);
+          }
+        }
+      };
+
       // 1. Process customAliases
       for (const [find, replacement] of Object.entries(customAliases)) {
-        const absReplacement = path.isAbsolute(replacement) ? replacement : path.resolve(root, replacement);
-        resolvedAliases.push({ find, replacement: absReplacement });
+        addAlias(find, replacement);
       }
 
       // 2. Parse tsconfig.json or jsconfig.json paths
@@ -93,10 +125,7 @@ export default function autoAliasPlugin(options: AutoAliasOptions = {}): Plugin 
               const cleanFind = key.replace(/\/\*$/, '');
               const cleanTarget = targets[0].replace(/\/\*$/, '');
               const absTarget = path.resolve(baseUrl, cleanTarget);
-
-              if (!resolvedAliases.some(a => a.find === cleanFind)) {
-                resolvedAliases.push({ find: cleanFind, replacement: absTarget });
-              }
+              addAlias(cleanFind, absTarget);
             }
           }
         } catch (err: any) {
@@ -110,32 +139,25 @@ export default function autoAliasPlugin(options: AutoAliasOptions = {}): Plugin 
         try {
           const entries = fs.readdirSync(absSrcDir, { withFileTypes: true });
           for (const entry of entries) {
-            if (entry.isDirectory()) {
+            if (entry.isDirectory() && entry.name !== '@') {
               const targetPath = path.join(absSrcDir, entry.name);
 
               // Direct subfolder alias (e.g. 'utils' -> '/src/utils', 'components' -> '/src/components')
-              if (!resolvedAliases.some(a => a.find === entry.name)) {
-                resolvedAliases.push({ find: entry.name, replacement: targetPath });
-              }
+              addAlias(entry.name, targetPath);
 
               // Prefixed subfolder alias (e.g. '@utils' -> '/src/utils')
               if (prefix && prefix !== '') {
-                const aliasName = `${prefix}${entry.name}`;
-                if (!resolvedAliases.some(a => a.find === aliasName)) {
-                  resolvedAliases.push({ find: aliasName, replacement: targetPath });
-                }
+                addAlias(`${prefix}${entry.name}`, targetPath);
               }
             }
           }
 
           // Default root alias (e.g. '@' -> src and 'src' -> src)
           const rootAlias = prefix || '@';
-          if (!resolvedAliases.some(a => a.find === rootAlias)) {
-            resolvedAliases.push({ find: rootAlias, replacement: absSrcDir });
+          if (!customAliases[rootAlias]) {
+            addAlias(rootAlias, absSrcDir);
           }
-          if (!resolvedAliases.some(a => a.find === 'src')) {
-            resolvedAliases.push({ find: 'src', replacement: absSrcDir });
-          }
+          addAlias('src', absSrcDir);
         } catch (err: any) {
           logStep('alias', '[WARNING]', `Failed to read ${srcDir} directory: ${err.message}`);
         }
@@ -154,13 +176,11 @@ export default function autoAliasPlugin(options: AutoAliasOptions = {}): Plugin 
       if (Array.isArray(existingAliases)) {
         (config.resolve as any).alias = [...existingAliases, ...resolvedAliases];
       } else if (existingAliases && typeof existingAliases === 'object') {
-        const objectAliases: Record<string, string> = { ...(existingAliases as Record<string, string>) };
-        for (const alias of resolvedAliases) {
-          if (typeof alias.find === 'string' && !(alias.find in objectAliases)) {
-            objectAliases[alias.find] = alias.replacement;
-          }
+        const customObjAliases: Alias[] = [];
+        for (const [find, replacement] of Object.entries(existingAliases as Record<string, string>)) {
+          customObjAliases.push(...createExactAlias(find, replacement));
         }
-        (config.resolve as any).alias = objectAliases;
+        (config.resolve as any).alias = [...customObjAliases, ...resolvedAliases];
       } else {
         (config.resolve as any).alias = resolvedAliases;
       }
