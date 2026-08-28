@@ -1,11 +1,16 @@
 {
   "name": "vite-plugins-library",
   "version": "1.4.5",
+  "type": "module",
   "description": "A curated collection of production-ready custom Vite plugins and standalone CLI logger utilities inspired by enterprise Vite configurations.",
+    "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "prepublish": "rm -rf ./dist && npm run build",
+    "typecheck": "tsc --noEmit"
+  },
   "publishConfig": {
     "access": "public"
   },
-  "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -130,11 +135,6 @@
   "files": [
     "dist"
   ],
-  "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly",
-    "prepublish": "rm -rf ./dist && npm run build",
-    "typecheck": "tsc --noEmit"
-  },
   "keywords": [
     "vite",
     "vite-plugin",
