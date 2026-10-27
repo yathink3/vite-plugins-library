@@ -25,6 +25,7 @@ export default defineConfig({
         'plugins/fontLocalizer': resolve(__dirname, 'src/plugins/fontLocalizer.ts'),
         'plugins/htmlMeta': resolve(__dirname, 'src/plugins/htmlMeta.ts'),
         'plugins/imageToCdn': resolve(__dirname, 'src/plugins/imageToCdn.ts'),
+        'plugins/cssToCdn': resolve(__dirname, 'src/plugins/cssToCdn.ts'),
         'plugins/jsAsJsx': resolve(__dirname, 'src/plugins/jsAsJsx.ts'),
         'plugins/licenseNotice': resolve(__dirname, 'src/plugins/licenseNotice.ts'),
         'plugins/postcssShadowDom': resolve(__dirname, 'src/plugins/postcssShadowDom.ts'),

@@ -33,6 +33,8 @@ All plugins support both **main library imports** and **tree-shakable subpath im
 | :--- | :--- | :--- |
 | `postcssShadowDomTailwindPlugin` | `vite-plugins-library/postcss-shadow-dom` | Adapts Tailwind CSS v4+ & global styles for Web Components / Shadow DOM (`:host`). Removes duplicate selectors & appends header comments. |
 | `convertCssRootToHostPlugin` | `vite-plugins-library/convert-css-root-to-host` | Post-transform CSS plugin converting `:root` and Tailwind universal selectors/theme classes to `:host` for Web Components / Shadow DOM. |
+| `imageToCdnPlugin` | `vite-plugins-library/image-to-cdn` | Automatically rewrites local image asset imports to static CDN URLs during production builds. |
+| `cssToCdnPlugin` | `vite-plugins-library/css-to-cdn` | Dynamically rewrites `?inline` CSS imports to CDN stylesheet URLs, sets `build.lib.cssFileName`, or keeps them inline when absent. |
 | `proxyRedirectsPlugin` | `vite-plugins-library/proxy-redirects` | Dynamic dev server proxy rewrites & production deployment redirects for Netlify (`_redirects`), Vercel (`vercel.json`), and Nginx (`nginx.conf.snippet`). |
 | `codeSplitPlugin` | `vite-plugins-library/code-split` | Structured Rollup output chunk naming strategy for assets (`a/`), CSS (`c/`), and JS (`j/`). |
 | `autoAliasPlugin` | `vite-plugins-library/auto-alias` | **Unified**: Resolves `tsconfig.json` path mappings, auto-creates `@` subfolder aliases for `src/`, and deduplicates package dependencies. |
@@ -160,7 +162,45 @@ export default defineConfig({
 
 ---
 
-### 6. Public CSS Management Plugin
+### 6. CSS to CDN Plugin
+
+Dynamically handles CSS for CDN library and embed builds (e.g., IIFE/UMD embeds):
+- **When CDN URL is present** (via `cdnUrl` option or `BASE_CDN_URL` in `.env`):
+  - Rewrites `?inline` CSS imports to reference the CDN stylesheet URL (`${cdnUrl}/${cdnDir}/${stylesFileName}.css`).
+  - Automatically configures `build.lib.cssFileName` to `stylesFileName` (defaults to `'main'`).
+  - Injects normal CSS import so Vite extracts and compiles the bundle's external CSS file, tree-shaking the inline CSS string out of the JS bundle.
+- **When CDN URL is absent**:
+  - Leaves `?inline` CSS imports untouched so styles remain inline in the bundle (e.g., self-contained Web Components or standalone single-file embed distributions).
+  - Skips external CSS extraction.
+
+```ts
+import { defineConfig } from 'vite';
+import cssToCdnPlugin, { csstoCdnPlugin } from 'vite-plugins-library/css-to-cdn';
+// or: import { cssToCdnPlugin } from 'vite-plugins-library';
+
+export default defineConfig({
+  plugins: [
+    cssToCdnPlugin({
+      cdnUrl: 'https://cdn.example.com', // Optional: defaults to process.env.BASE_CDN_URL
+      cdnDir: 'cdn',                     // Output subfolder on CDN (default: 'cdn')
+      stylesFileName: 'my-styles.min',   // Stylesheet filename (defaults to 'main')
+    }),
+  ],
+});
+```
+
+#### Options
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `cdnUrl` | `string` | `process.env.BASE_CDN_URL` | Base CDN host/origin URL. |
+| `cdnDir` | `string` | `'cdn'` | Subdirectory path where CDN assets are hosted. |
+| `stylesFileName` | `string` | `'main'` | Base filename for the emitted CSS stylesheet. Automatically sets `build.lib.cssFileName`. |
+| `envDir` | `string` | `process.cwd()` | Directory to locate `.env` files for resolving `BASE_CDN_URL`. |
+
+---
+
+### 7. Public CSS Management Plugin
 
 Manages path resolution for public CSS assets during dev mode and minifies them during production builds.
 
@@ -180,7 +220,7 @@ export default defineConfig({
 
 ---
 
-### 7. Environment Variables Loader Plugin
+### 8. Environment Variables Loader Plugin
 
 Injects variables matching specified prefixes into `process.env`.
 
@@ -199,7 +239,7 @@ export default defineConfig({
 
 ---
 
-### 8. Custom Config & Alias Plugin
+### 9. Custom Config & Alias Plugin
 
 Auto-configures path aliases (`@` -> `./src`) and deduplicates React dependencies.
 
@@ -218,7 +258,7 @@ export default defineConfig({
 
 ---
 
-### 9. Build Log Modifier Plugin
+### 10. Build Log Modifier Plugin
 
 Suppresses annoying or non-critical build warning codes from terminal output.
 
@@ -237,7 +277,7 @@ export default defineConfig({
 
 ---
 
-### 10. Environment Variable Validator Plugin
+### 11. Environment Variable Validator Plugin
 
 Validates `.env` variables against a schema at build/dev start. Prevents deploying broken apps with missing keys.
 
@@ -260,7 +300,7 @@ export default defineConfig({
 
 ---
 
-### 11. Asset Pre-Compression Plugin
+### 12. Asset Pre-Compression Plugin
 
 Pre-compresses build assets into `.gz` (Gzip) and `.br` (Brotli) files during production build using Node's native `zlib` module.
 
@@ -280,7 +320,7 @@ export default defineConfig({
 
 ---
 
-### 12. Dynamic HTML & SEO Meta Plugin
+### 13. Dynamic HTML & SEO Meta Plugin
 
 Injects dynamic SEO meta tags, OpenGraph data, Twitter cards, theme colors, and favicons into `index.html`.
 
@@ -311,7 +351,7 @@ export default defineConfig({
 
 ---
 
-### 13. Development API Mock Middleware Plugin
+### 14. Development API Mock Middleware Plugin
 
 Injects dev server middleware to intercept local API calls (e.g. `/api/*`) and serve mock JSON data with simulated latency.
 
@@ -343,7 +383,7 @@ export default defineConfig({
 
 ---
 
-### 14. Unified Project Build Quality Scorer & Performance Auditor Plugin
+### 15. Unified Project Build Quality Scorer & Performance Auditor Plugin
 
 Combines production build quality scoring, letter grades (`A+`, `A`, `B`, `C`, `F`), bundle size budget audits, and transform performance bottleneck profiling into a single unified build auditor.
 
@@ -367,7 +407,7 @@ export default defineConfig({
 
 ---
 
-### 15. Automatic Path Alias Resolver Plugin
+### 16. Automatic Path Alias Resolver Plugin
 
 Automatically resolves path aliases from `tsconfig.json`/`jsconfig.json` `compilerOptions.paths` and auto-maps top-level directories under `src/` (e.g. `@components`, `@hooks`, `@services`, `@assets`).
 
@@ -387,7 +427,7 @@ export default defineConfig({
 
 ---
 
-### 16. Dead Code & Unused Asset Scanner Plugin
+### 17. Dead Code & Unused Asset Scanner Plugin
 
 Audits static asset files in `public/` and `src/assets/` against the Vite module build graph to detect unreferenced images, SVGs, or font files.
 
@@ -408,7 +448,7 @@ export default defineConfig({
 
 ---
 
-### 17. Google Web Font Localizer & Downloader Plugin
+### 18. Google Web Font Localizer & Downloader Plugin
 
 Scans `index.html` for Google Fonts CDN links, downloads `.woff2` font files locally during build/dev into public assets, and rewrites HTML to serve self-hosted fonts without GDPR privacy concerns or network latency.
 
@@ -428,7 +468,7 @@ export default defineConfig({
 
 ---
 
-### 18. Dev Server Proxy & Route Fallback Recovery Plugin
+### 19. Dev Server Proxy & Route Fallback Recovery Plugin
 
 Intercepts dev server proxy errors (502/503/504 connection failures) and missing SPA client routes to return configurable mock fallbacks or custom HTML error pages.
 
@@ -453,7 +493,7 @@ export default defineConfig({
 
 ---
 
-### 19. Open Source License & Compliance Auditor Plugin
+### 20. Open Source License & Compliance Auditor Plugin
 
 Audits imported `node_modules` dependencies during production builds and generates open-source attribution notices (`THIRD_PARTY_LICENSES.md` or `licenses.json`) in `dist/`.
 
@@ -473,7 +513,7 @@ export default defineConfig({
 
 ---
 
-### 20. HTTP Security Headers & Host Config Exporter Plugin
+### 21. HTTP Security Headers & Host Config Exporter Plugin
 
 Enforces security headers (Content-Security-Policy, Cross-Origin-Opener-Policy for `SharedArrayBuffer`, X-Frame-Options, HSTS) during dev and preview modes, and exports production header configuration files (`_headers` for Cloudflare/Netlify, `vercel.json` headers array, `nginx-security.conf`) during build.
 
@@ -498,7 +538,7 @@ export default defineConfig({
 
 ---
 
-### 21. Dynamic Bundle Banner & Notice Inserter Plugin
+### 22. Dynamic Bundle Banner & Notice Inserter Plugin
 
 Prepends customizable build banners, copyright statements, license text, git commit hashes, and build timestamps to generated JS and CSS output chunks without breaking source maps.
 
@@ -518,7 +558,7 @@ export default defineConfig({
 
 ---
 
-### 22. SVG Sprite Sheet Generator & Virtual Module Plugin
+### 23. SVG Sprite Sheet Generator & Virtual Module Plugin
 
 Combines individual `.svg` icon files into a single `<symbol>` SVG sprite sheet (`assets/sprite.svg`), offering virtual module imports (`virtual:svg-sprite`) and automatic HTML body injection.
 
@@ -539,7 +579,7 @@ export default defineConfig({
 
 ---
 
-### 23. Core Web Vitals Resource Hints & Asset Preloader Plugin
+### 24. Core Web Vitals Resource Hints & Asset Preloader Plugin
 
 Boosts Largest Contentful Paint (LCP) and loading speed by automatically parsing production Rollup assets and injecting `<link rel="modulepreload">`, `<link rel="preload" as="font">`, `<link rel="preload" as="style">`, `preconnect`, and `dns-prefetch` into HTML `<head>`.
 
@@ -562,7 +602,7 @@ export default defineConfig({
 
 ---
 
-### 24. Automatic Vite Dependency Cache Purger Plugin
+### 25. Automatic Vite Dependency Cache Purger Plugin
 
 Fixes Vite's most frequent dev server pain point ("Failed to resolve import") by computing checksums of `package.json` and lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`) and automatically clearing `node_modules/.vite` whenever dependencies change.
 
@@ -581,7 +621,7 @@ export default defineConfig({
 
 ---
 
-### 25. Legacy Configuration Interop Plugin
+### 26. Legacy Configuration Interop Plugin
 
 Automatically applies known legacy configuration options (such as Vite 8's `inconsistentCjsInterop` or Vite 5/6 SSR fallback heuristics) by default to help maintain backwards compatibility and prevent silent breaks during Vite version upgrades.
 

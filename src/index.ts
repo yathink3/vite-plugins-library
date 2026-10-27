@@ -7,6 +7,9 @@ export type { EnvLoaderOptions } from './plugins/envLoader';
 export { default as imageToCdnPlugin } from './plugins/imageToCdn';
 export type { ImageToCdnOptions } from './plugins/imageToCdn';
 
+export { default as cssToCdnPlugin } from './plugins/cssToCdn';
+export type { CssToCdnOptions } from './plugins/cssToCdn';
+
 export { default as jsAsJsxPlugin } from './plugins/jsAsJsx';
 export type { JsAsJsxOptions } from './plugins/jsAsJsx';
 
@@ -77,5 +80,3 @@ export type { BuildScorerOptions, BuildScoreReport, ScoreCategory } from './plug
 
 export { default as logger, colors, logBox, logStep } from './utils/logger';
 export type { LogType } from './utils/logger';
-
-
